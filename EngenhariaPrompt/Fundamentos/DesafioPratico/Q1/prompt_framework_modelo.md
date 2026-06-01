@@ -1,12 +1,17 @@
+
+# Modelo utilizado: Sonnet 4.6
+# Framework: RTF
+
+# Enunciado
 A Hill Valley Tech é uma empresa fictícia que serve de palco para este desafio.
 Tem cinco sistemas em produção, cada um com seu papel bem definido.
 
-#  O Chronos é o API gateway e a plataforma core, ponto de entrada de todo tráfego da empresa.
-#  Por trás dele, o Ledger é um data warehouse em PostgreSQL que guarda histórico de transações e eventos,
-#  enquanto o Reactor toca o processamento assíncrono por filas de mensagens.
-#  Em paralelo a tudo isso, o Beacon mantém a observabilidade do ambiente inteiro, métricas, logs e alertas, e
+-  O Chronos é o API gateway e a plataforma core, ponto de entrada de todo tráfego da empresa.
+-  Por trás dele, o Ledger é um data warehouse em PostgreSQL que guarda histórico de transações e eventos,
+-  enquanto o Reactor toca o processamento assíncrono por filas de mensagens.
+-  Em paralelo a tudo isso, o Beacon mantém a observabilidade do ambiente inteiro, métricas, logs e alertas, e
 é por ele que o plantão enxerga o que está acontecendo.
-#  Fora do core principal, o Lift é um produto em beta que o time vem amadurecendo à parte.
+-  Fora do core principal, o Lift é um produto em beta que o time vem amadurecendo à parte.
 
 Quero utilizar o framework RTF (Role, tash e Format)
 
