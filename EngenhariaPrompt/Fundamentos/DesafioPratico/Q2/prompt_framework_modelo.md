@@ -34,4 +34,9 @@ registrar cada execução em /var/log/ledger-backup.log com timestamp,
 e sair com exit code adequado em caso de falha.
 
 #Format
-- Prompt, modelo, output e justificativa mostrando como Role, Task e Format aparecem no prompt.
+Retorne um único script Bash autocontido (shebang #!/usr/bin/env bash). Requisitos para o output:
+
+Ativar strict mode (set -euo pipefail) no topo.
+Usar uma função auxiliar log() para que todas as linhas de log sejam uniformes.
+Organizar o script em seções claramente rotuladas com comentários: CONFIGURAÇÃO, AUXILIARES, VERIFICAÇÕES PRÉ-VOO, DUMP, COMPRESSÃO, UPLOAD S3, RETENÇÃO, CONCLUÍDO.
+Após o script, adicionar um bloco curto de "Notas de Implantação" (texto simples, não código) cobrindo: entrada de crontab para execução diária às 02:00 UTC, permissões IAM necessárias para a role da instância e recomendação de rotação de logs.
