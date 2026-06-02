@@ -1,4 +1,5 @@
-#TASK (O que fazer)
+# TASK (O que fazer)
+
 Jennifer precisa de um relatório mensal de transações consolidadas do Ledger (PostgreSQL) para apresentar crescimento dos últimos 6 meses por categoria. O relatório será entregue em formato estruturado (mês, categoria, quantidade de transações, volume total).
 Contexto do banco:
 
