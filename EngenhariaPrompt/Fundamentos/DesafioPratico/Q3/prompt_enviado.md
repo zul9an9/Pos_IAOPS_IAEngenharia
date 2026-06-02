@@ -1,13 +1,3 @@
-# Síntese: o T-A-G 
-funciona como um funil — a Task delimita o universo de dados (CSV, meta, restrição de SLA), a Action define as análises a executar sobre esses dados (priorização, cronograma, riscos), e o Goal molda a forma final do entregável (idioma, tom, estrutura, público). Cada pilar elimina uma classe de ambiguidade diferente, resultando em um relatório que pode ir direto da resposta do modelo para a mesa da diretoria.
-
-# modelo: Opus 4.6
-
-Justificativas técnicas para esta escolha:
-
-Raciocínio financeiro encadeado: o modelo precisa cruzar 12 linhas de custo, calcular % individuais sobre o total, somar economias parciais e validar que a meta de 15% é atingida — cadeia longa de dependência lógica onde Opus se diferencia.
-Planejamento multi-variável: o cronograma precisa respeitar dependências entre ações (ex.: rightsizing antes de desligar on-demand), algo que exige raciocínio de segunda ordem.
-Tom executivo para diretoria: Opus mantém consistência de registro formal em documentos longos melhor que modelos menores.
 
 # [TASK]
 Você recebeu o breakdown de custos AWS do último mês consolidado
