@@ -1,5 +1,5 @@
 
-# JUSTIFICATIVA DO FRAMEWORK T-A-G
+# justificativa do framework T-A-G
 
 Como cada elemento aparece no prompt:
 ElementoAparição no PromptPropósitoTASKParágrafo 1 + contexto do bancoDefine CLARAMENTE o problema: Jennifer precisa de um relatório consolidado. Fornece as tabelas, campos, regras de negócio (categorias válidas, status, unidade de amount_cents). Remove ambiguidade.ACTIONSeção "Gere uma query SQL que..." com 5 passos numeradosDecompõe o trabalho em passos EXECUTÁVEIS e SEQUENCIAIS. Define exatamente como filtrar, agrupar, calcular e ordenar. Requisitos técnicos garantem que a IA não gere query genérica.GOALSeção "Output esperado" + exemplo estruturado + validaçõesDeixa CRISTALINO qual é o sucesso. A IA não apenas segue instruções cegas, mas sabe exatamente o que julgar como correto. Validações funcionam como testes unitários.
