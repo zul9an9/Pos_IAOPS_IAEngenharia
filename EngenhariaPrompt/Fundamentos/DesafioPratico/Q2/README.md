@@ -7,10 +7,12 @@ o que modelos menores entregam com menos consistência.
 # Framework utilizado: RTF
 Contexto técnico denso exige que o modelo saiba quem está respondendo (sênior, não júnior), o que entregar (script completo, não pseudocódigo) e como formatar (seções, helper, notas). Sem o Role, o modelo poderia omitir as guards; sem o Format explícito, entregaria um bloco monolítico difícil de auditar em produção.
 
-
+# CRONTAB
 
 CRONTAB (daily at 02:00 UTC – add to root or the backup service account):
   0 2 * * * /usr/local/bin/ledger-backup.sh >> /var/log/ledger-backup.log 2>&1
+
+# IAM Permissions
 
 IAM permissions required on the EC2 instance role:
   s3:PutObject    – s3://hvt-ledger-backups/*
