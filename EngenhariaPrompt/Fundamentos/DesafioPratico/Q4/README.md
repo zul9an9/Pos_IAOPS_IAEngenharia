@@ -18,7 +18,7 @@ GOAL → Mostrar resultado esperado para que a IA autovalide
 
 Resultado: Query correta na primeira tentativa, 95% de chance de não precisar de iteração.
 
-# Haiku 4.5
+# Justificação Haiku 4.5
 
 A regra de ouro
 Se você não sabe qual Claude usar, comece com Sonnet 4.6 — é o ponto de partida mais seguro. Mude para Opus apenas quando a tarefa claramente precisa de maior capacidade. Haiku 4.5 é para tarefas sensíveis à latência, baixo custo e alta concorrência. KnightLi Blog
