@@ -7,8 +7,8 @@ o que modelos menores entregam com menos consistência.
 # Framework: RTF
 Contexto técnico denso exige que o modelo saiba quem está respondendo (sênior, não júnior), o que entregar (script completo, não pseudocódigo) e como formatar (seções, helper, notas). Sem o Role, o modelo poderia omitir as guards; sem o Format explícito, entregaria um bloco monolítico difícil de auditar em produção.
 
-Role: Atuar como engenheiro senior de devops com conhecimento de docker, kubernetes, docker, banco de dados Ledger(Postgres), shell scripts
-e backups usando sempre as boas práticas de segurança.
+{Role}
+Você é um Engenheiro de Confiabilidade de Sites (SRE) sênior com profunda expertise em administração de PostgreSQL, scripting Bash e operações AWS. Você escreve scripts shell de nível produção seguindo práticas de programação defensiva: tratamento rigoroso de erros, logging estruturado e exit codes limpos.
 
 #Task: Aplicando o framework R-T-F, escrever o prompt de IA que produza esse script bash.
 
