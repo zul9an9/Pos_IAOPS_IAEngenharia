@@ -1,0 +1,122 @@
+# ============================================================
+# Deployment modernizado — chronos-api
+# Todas as alterações comentadas inline com justificativa
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chronos-api
+  namespace: production
+spec:
+  replicas: 3  # BEFORE: era 1 — zero tolerância a falha; AFTER: 3 réplicas garantem HA
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0  # AFTER: nenhum pod derrubado antes do novo estar saudável
+      maxSurge: 1        # sobe 1 pod extra durante o rollout, depois derruba o antigo
+
+  selector:
+    matchLabels:
+      app: chronos-api
+
+  template:
+    metadata:
+      labels:
+        app: chronos-api
+
+    spec:
+      # ── Distribuição entre nodes ─────────────────────────────
+      affinity:
+        podAntiAffinity:
+          # "preferred" não bloqueia scheduling se só houver 1 node (ex: dev/staging)
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: chronos-api
+              topologyKey: kubernetes.io/hostname
+              # AFTER: pods do mesmo Deployment vão para hosts diferentes
+
+      # ── Segurança a nível de Pod ─────────────────────────────
+      securityContext:
+        runAsNonRoot: true   # BEFORE: potencialmente root; AFTER: proibido
+        runAsUser: 1000      # UID não-privilegiado explícito
+        fsGroup: 2000        # grupo para volumes montados
+
+      containers:
+      - name: api
+        # BEFORE: "latest" é não-reproduzível e força pull imprevisível
+        # AFTER: tag semântica — troque pelo SHA ou versão real no pipeline
+        image: chronos-api:1.0.0
+
+        ports:
+        - containerPort: 8080
+
+        # ── Secrets externalizados ───────────────────────────────
+        env:
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:         # BEFORE: plaintext no manifest — violação crítica
+              name: chronos-api-secrets
+              key: db-password    # AFTER: valor lido do Secret em runtime
+
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: chronos-api-secrets
+              key: jwt-secret
+
+        # ── Resources ────────────────────────────────────────────
+        resources:
+          requests:               # BEFORE: ausente — scheduler não conseguia planejar
+            memory: "256Mi"
+            cpu: "500m"
+          limits:                 # AFTER: teto definido — evita OOMKill de vizinhos
+            memory: "512Mi"
+            cpu: "1000m"
+
+        # ── Liveness Probe ───────────────────────────────────────
+        livenessProbe:            # BEFORE: ausente — pod travado ficava "Running" para sempre
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 15 # tempo para a JVM/runtime inicializar
+          periodSeconds: 20
+          failureThreshold: 3     # 3 falhas consecutivas → kubelet reinicia o container
+
+        # ── Readiness Probe ──────────────────────────────────────
+        readinessProbe:           # BEFORE: ausente — tráfego chegava antes da app estar pronta
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          failureThreshold: 3     # 3 falhas → pod sai do endpoint do Service
+
+        # ── Segurança a nível de Container ──────────────────────
+        securityContext:
+          allowPrivilegeEscalation: false  # BEFORE: padrão permissivo; AFTER: explicitamente negado
+          readOnlyRootFilesystem: true     # filesystem imutável — writes só em volumes declarados
+          capabilities:
+            drop: ["ALL"]                  # remove todas as capabilities Linux (net_raw, etc.)
+
+---
+# ============================================================
+# Secret — deve ser aplicado ANTES do Deployment
+# Em produção: gerado pelo Vault, External Secrets Operator
+# ou similar. Nunca commitar valores reais no repositório.
+# ============================================================
+apiVersion: v1
+kind: Secret
+metadata:
+  name: chronos-api-secrets
+  namespace: production
+type: Opaque
+data:
+  # Valores em base64. Para gerar: echo -n 'valor' | base64
+  # BEFORE: estavam em plaintext no env do Deployment
+  # AFTER: isolados aqui, acessíveis apenas por pods com ServiceAccount autorizada
+  db-password: <base64-encoded-password>
+  jwt-secret: <base64-encoded-jwt-secret>
