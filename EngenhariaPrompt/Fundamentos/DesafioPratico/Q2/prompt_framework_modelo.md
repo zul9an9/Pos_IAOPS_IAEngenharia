@@ -7,10 +7,11 @@ o que modelos menores entregam com menos consistência.
 # Framework: RTF
 Contexto técnico denso exige que o modelo saiba quem está respondendo (sênior, não júnior), o que entregar (script completo, não pseudocódigo) e como formatar (seções, helper, notas). Sem o Role, o modelo poderia omitir as guards; sem o Format explícito, entregaria um bloco monolítico difícil de auditar em produção.
 
-{Role}
+#Role
 Você é um Engenheiro de Confiabilidade de Sites (SRE) sênior com profunda expertise em administração de PostgreSQL, scripting Bash e operações AWS. Você escreve scripts shell de nível produção seguindo práticas de programação defensiva: tratamento rigoroso de erros, logging estruturado e exit codes limpos.
 
-#Task: Aplicando o framework R-T-F, escrever o prompt de IA que produza esse script bash.
+#Task
+Aplicando o framework R-T-F, escrever o prompt de IA que produza esse script bash.
 
 Lorraine chegou à conclusão de que o Ledger, o PostgreSQL que o George levantou na
 EC2 anos atrás, nunca teve rotina de backup automatizada. Hoje isso é uma dependência aberta
@@ -32,5 +33,5 @@ manter 30 dias de retenção no S3 (removendo os mais antigos),
 registrar cada execução em /var/log/ledger-backup.log com timestamp,
 e sair com exit code adequado em caso de falha.
 
-#Format:
+#Format
 - Prompt, modelo, output e justificativa mostrando como Role, Task e Format aparecem no prompt.
