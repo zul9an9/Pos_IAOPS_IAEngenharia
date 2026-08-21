@@ -1,11 +1,9 @@
 
-
-
-# Análises da Q8 em relação ao modelo Claude Opus 4.8 vs Open AI GPT 5.6 luna
+# Análises da Q8 em relação ao modelo Claude Opus 4.8 vs Open AI GPT 5.6 Luna
 
 ## Claude Opus 4.8
 ## Open AI GPT 5.6 luna
-## Comaparação: Claude Opus 4.8 vs Open AI GPT 5.6 luna
+## Comaparação: Claude Opus 4.8 vs Open AI GPT 5.6 Luna
 
 # Opus 4.8 - Postmortem técnico — chronos-api (incidente em andamento)
 
@@ -320,6 +318,7 @@ Pro seu caso (dado fictício, tarefa pontual), a escolha entre Opus 4.8 e Sol é
 vs ~US$ 0,05, latência parecida, qualidade nos dois no topo, privacidade equivalente na API.
 O que realmente move a agulha não é a marca, é: descer de tier (GPT‑5.6 Terra a US$ 2/12 ou Claude Sonnet 5
 a ~US$ 3/15 cortam a conta pela metade) e controlar o reasoning effort.
+Mas escolheria o Opus 4.8 pela maior precisão nas avaliações e o custo mais baixo.
 
 
 
