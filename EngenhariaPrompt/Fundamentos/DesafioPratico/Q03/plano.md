@@ -1,0 +1,62 @@
+#RESUMO EXECUTIVO
+O custo mensal AWS atual do ambiente é USD 41.800. A meta de Goldie exige uma redução de 15%, 
+equivalente a USD 6.270/mês. O pacote de 8 ações identificado abaixo projeta uma economia total 
+de USD 7.410/mês (17,7%), com classificação de confiança moderada
+— As estimativas mais conservadoras já cobrem o piso de 15%. 
+- A implementação está distribuída em 6 sprints quinzenais sem janelas de indisponibilidade planejada.
+
+#OPORTUNIDADES DE ECONOMIA
+#ServiçoAção propostaEconomia USD/mês% da contaEsforçoRiscos / Pré-requisitos1EC2 o
+n-demandMigrar 60% da carga variável para Spot Instances com fallback ASG + converter 
+instâncias x86 elegíveis para Graviton (c7g/m7g)3.2807,8%MédioRequer teste de compatibilidade 
+ARM nos workloads; Spot pode ser reclamado — ASG mixed instances mitiga2RDS PostgreSQLContratar 
+Reserved Instance 1 ano (All Upfront) para a instância multi-AZ principal + rightsizing 
+de db.r6g se uso médio está em 62%1.6403,9%BaixoCompromisso financeiro de 12 meses; 
+-validar que o instance type menor suporta picos com teste de carga3CloudWatch LogsReduzir 
+ retenção de 90 para 30 dias; 
+- exportar logs >30d para S3 Glacier via subscription filter8402,0%BaixoValidar com compliance 
+ se 30 dias em CloudWatch atende auditoria; 
+- criar pipeline de exportação4EKSRightsizing dos 3 clusters: reduzir node groups ociosos (58% 
+ uso médio indica over-provisioning); 
+- implementar Karpenter para escalonamento mais agressivo6701,6%AltoRisco de pod eviction 
+ durante ajuste; 
+- exige tuning de requests/limits nos deployments5ElastiCache RedisContratar Reserved 
+ Node 1 ano + avaliar downgrade de node type (uso de 40% indica sobredimensionamento)
+4201,0%MédioTestar latência p99 com node menor; 
+- compromisso de 12 meses6NAT GatewayConsolidar de 3 para 1 gateway compartilhado entre 
+AZs + rotear tráfego S3/DynamoDB via VPC Gateway Endpoints (custo zero)3000,7%BaixoGateway 
+único é SPOF — aceitável se o tráfego cross-AZ for baixo; 
+- endpoints eliminam parte do tráfego7S3 StandardAplicar lifecycle policy: transição para S3 
+ Intelligent-Tiering nos 5 buckets;
+- mover objetos >90 dias para Glacier1600,4%BaixoObjetos em Glacier têm latência de retrieval 
+ de minutos/horas; 
+- mapear quais buckets têm acesso frequente8Data Transfer OutHabilitar compressão gzip 
+ em respostas de API + avaliar consolidação de tráfego inter-região com VPC Peering1000,
+2%MédioRequer mudança em API Gateways/ALBs; peering tem limite de banda
+
+Economia total projetada: USD 7.410/mês → 17,7% da conta
+CategoriaCusto atualEconomiaNovo custoReduçãoCompute (EC2+EKS+Lambda)20.0003.95016.05019,8%Databases (RDS+Redis)10.3002.0608.24020,0%Storage (S3+EBS)4.7001604.5403,4%Observability (CW)3.7008402.86022,7%Network (Transfer+NAT)3.1004002.70012,9%Total41.8007.41034.39017,7%
+
+#CRONOGRAMA DE EXECUÇÃO (Trimestral — 6 Sprints)
+SprintQuinzenaAçõesResponsávelDependênciasS1Semanas 1-2CloudWatch Logs: reduzir retenção 
+ para 30d + criar export para S3 GlacierSRE + FinOpsAprovação complianceS1Semanas 1-2S3 
+lifecycle policies nos 5 bucketsFinOpsMapeamento de acessoS2Semanas 
+3-4NAT Gateway: criar VPC Endpoints para S3/DynamoDB + consolidar gatewaysDevOpsInventário 
+de rotasS2Semanas 3-4RDS: comprar Reserved Instance + teste de carga para rightsizingPlataforma 
++ FinOpsBudget aprovadoS3Semanas 
+5-6ElastiCache: Reserved Node + benchmark de node type menorPlataformaAmbiente 
+de stagingS3Semanas 5-6EC2 on-demand: PoC de Spot + Graviton em stagingSRE + DevOpsBuild de
+AMIs ARMS4Semanas 7-8EC2 on-demand: rollout Spot/Graviton para produção (canário 20% → 60%)S
+REValidação do S3S5Semanas 9-10EKS: deploy Karpenter + rightsizing de node groupsPlataformaRevisão 
+de requests/limitsS5Semanas 9-10Data Transfer: compressão em APIs + avaliação de VPC 
+PeeringDevOpsALB configS6Semanas 11-12Validação financeira consolidada + relatório para diretoriaFinOpsTodos os itens
+
+#MAPA DE RISCOS
+RiscoAção vinculadaProbabilidadeImpacto no SLAMitigaçãoInstâncias Spot reclamadas em picoEC2 on-demand → SpotMédiaAlto — pods/serviços perdem capacidadeASG mixed instances (Spot + OD fallback); diversificar 3+ instance typesRightsizing agressivo causa lentidão em picosRDS / ElastiCache / EKSBaixaAlto — latência acima do SLATeste de carga obrigatório antes de cada mudança; rollback em <15 minLogs ausentes durante incidente forenseCW Logs 90d → 30dBaixaMédio — compliance e investigaçãoExport automático para S3/Glacier com Athena para consulta ad-hocNAT Gateway único como SPOFConsolidação NATBaixaAlto — perda de saída de redeMonitorar com alarme CloudWatch; manter 2 se tráfego cross-AZ for relevanteCompromisso financeiro de RI com mudança futuraRI RDS + RedisBaixaBaixo — financeiro, não técnicoContratar 1 ano (não 3); reavaliar no próximo cicloIncompatibilidade ARM em workloads legadosGraviton migrationMédiaMédio — rollback para x86PoC em staging por 2 semanas; manter AMIs x86 como fallback
+
+PRÓXIMOS PASSOS
+
+Semana 0 (pré-kickoff): Doc Brown valida números do CSV com o Cost Explorer e confirma baseline.
+Aprovação: Goldie assina o plano e o budget para Reserved Instances (RDS + Redis ≈ USD 45k upfront anual).
+Execução S1-S6: sprints quinzenais conforme cronograma; retrospectiva de savings ao fim de cada sprint.
+Semana 12: FinOps entrega relatório final comparando custo realizado vs. baseline, apresentando à diretoria.
