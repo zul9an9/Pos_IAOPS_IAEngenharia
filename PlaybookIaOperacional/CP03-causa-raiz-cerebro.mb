@@ -1,6 +1,6 @@
 # Checkpoint 03 — Causa-raiz da degradação no Cerebro
 
-## Contexto
+## Contexto CP03-causa-raiz-cerebro.md
 
 Prompt parametrizável de análise de causa-raiz que recebe três artefatos
 (config do cluster Elasticsearch, métricas de série temporal e logs nativos)
