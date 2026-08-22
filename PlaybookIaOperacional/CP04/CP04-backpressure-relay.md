@@ -1,0 +1,158 @@
+# Checkpoint 04 — Backpressure no Relay
+
+## Contexto 
+
+Prompt parametrizável de apoio à decisão que recebe o estado do Relay e as
+restrições de negócio/engenharia, e força a IA a comparar múltiplas
+estratégias de backpressure (prós/contras contra cada restrição) antes de
+recomendar — em vez de entregar uma resposta única sem justificativa
+comparada.
+
+## 1. Prompt parametrizável
+
+```
+Role: Você é um arquiteto de sistemas distribuídos sênior, consultor de
+confiabilidade e capacidade para a plataforma da Aegis. Sua recomendação
+embasa uma decisão cara — o time espera comparação real, não uma resposta
+única disfarçada de análise.
+
+Input:
+- {{estado_relay}}: throughput atual, pico observado, retenção, consumidores
+- {{restricoes}}: as regras de negócio e engenharia que qualquer solução
+  precisa respeitar (SLAs por consumidor, orçamento, tolerância a perda)
+
+Steps:
+1. Liste as estratégias candidatas relevantes ao cenário (pode incluir mais
+   de uma das mencionadas no time — priorização entre consumidores,
+   dead-letter queue, particionamento por cliente, autoscaling — e outras
+   que você considere pertinentes, mas não invente restrições novas).
+2. Avalie CADA estratégia contra CADA restrição individualmente — não faça
+   uma avaliação genérica. Se uma estratégia não resolve uma restrição,
+   diga isso explicitamente em vez de omitir.
+3. Apresente uma comparação estruturada (tabela ou lista) com prós e
+   contras de cada estratégia.
+4. Recomende uma estratégia única ou uma combinação, justificando pela
+   comparação feita — e declare explicitamente qual trade-off está sendo
+   aceito (nenhuma opção resolve tudo sem custo).
+5. Aponte que informação adicional, se disponível, mudaria essa
+   recomendação.
+
+Expectation: estruture a resposta em seções tituladas ("Opções avaliadas",
+"Comparação", "Recomendação", "Trade-offs aceitos", "Informação que
+mudaria a decisão"). Não conclua com uma única estratégia sem antes mostrar
+por que as outras foram descartadas ou combinadas.
+```
+
+Parâmetros: `{{estado_relay}}`, `{{restricoes}}` — o estado do sistema e as
+regras de negócio, que mudam a cada cenário de decisão.
+
+## 2. Execução
+
+**Modelo usado:** Claude (Sonnet). Justificativa: decisão de arquitetura com
+múltiplos trade-offs concorrentes e restrições de negócio — o valor está no
+raciocínio comparativo explícito, não em velocidade ou custo por chamada
+(é uma chamada pontual, não recorrente).
+
+**Output** (rodado com o cenário do Relay do checkpoint):
+
+```
+Opções avaliadas:
+1. Priorização do Sentinel sobre o Forge no consumo do Relay
+2. Dead-letter queue (DLQ) para o excedente que não couber no processamento em tempo real
+3. Particionamento (sharding) do Relay por tenant
+4. Autoscaling automático dos consumidores
+
+Comparação:
+
+Estratégia 1 — Priorização do Sentinel
+- SLA Sentinel (60s): atende diretamente — o consumo do Sentinel passa a
+  ter fila/prioridade dedicada, isolado do volume do Forge.
+- SLA Forge (15min): atende, desde que o atraso adicional fique dentro
+  da folga de 15min — folga que a própria restrição já concede.
+- Orçamento (+8%): custo baixo, é reconfiguração de consumo, não infra nova.
+- Perda de mensagem: não resolve sozinha — se o pico ultrapassar a
+  retenção de 4h antes de ser processado, ainda há risco de perda.
+
+Estratégia 2 — Dead-letter queue (DLQ)
+- SLA Sentinel: não deve receber tráfego do Sentinel nesta DLQ — se
+  mensagens de alerting forem parar lá, o SLA de 60s é violado, já que
+  DLQ implica reprocessamento posterior, não imediato.
+- SLA Forge: compatível, desde que só o excedente do Forge (que já
+  tolera 15min) seja direcionado à DLQ.
+- Orçamento: custo baixo (armazenamento, não computação extra).
+- Perda de mensagem: atende diretamente ao requisito inegociável do
+  Steve Rogers — nada é descartado, só adiado.
+
+Estratégia 3 — Sharding por tenant
+- SLA Sentinel / Forge: melhora justiça entre tenants (um tenant
+  barulhento não rouba capacidade dos outros), mas não resolve sozinha
+  se o volume agregado total ultrapassar a capacidade do Relay.
+- Orçamento: a mais cara das quatro — exige redesenho da chave de
+  particionamento e rebalanceamento, trabalho de engenharia relevante
+  com o orçamento já 8% acima do previsto.
+- Perda de mensagem: não endereça diretamente, é uma melhoria de
+  isolamento, não de capacidade ou de garantia de entrega.
+
+Estratégia 4 — Autoscaling automático
+- SLA Sentinel / Forge: absorve picos de volume, mas o tempo de reação
+  do autoscaler (spin-up de novos consumidores) pode gerar uma janela
+  curta de violação do SLA de 60s do Sentinel durante o próprio pico.
+- Orçamento: é a que mais pressiona o orçamento já estourado, a menos
+  que o scale-down seja agressivo e limitado à duração do pico.
+- Perda de mensagem: reduz o risco, mas não elimina — durante o
+  intervalo de ramp-up a fila ainda pode crescer.
+
+Recomendação:
+Combinação de três estratégias, não uma única: (1) priorizar o consumo do
+Sentinel em fila/partição dedicada — resolve o SLA de 60s sem custo
+adicional relevante; (2) direcionar apenas o excedente do lado do Forge
+para uma DLQ quando o buffer estiver sob pressão — garante zero perda de
+mensagem (requisito inegociável) aproveitando a folga de 15min do Forge;
+(3) autoscaling limitado e com scale-down agressivo, aplicado só aos
+consumidores do Forge (não do Sentinel, que já está protegido pela
+priorização) — absorve picos como o de 320k msgs/s sem expor o SLA crítico
+ao atraso de ramp-up. O particionamento por tenant fica como melhoria de
+médio prazo: o pico do incidente citado veio de um único tenant, então
+isolar por tenant ataca a causa (não só o sintoma), mas o custo de
+engenharia não se justifica como resposta imediata com o orçamento já
+estourado.
+
+Trade-offs aceitos:
+Aceita-se atraso de até ~15min nas mensagens do Forge durante picos (dentro
+do SLA acordado, mas não é "tempo real"). Aceita-se também um pequeno
+aumento de custo de infraestrutura pelo autoscaling do lado do Forge —
+mitigado por ser escopado e com scale-down agressivo, mas ainda é custo
+adicional sobre um orçamento já 8% acima do previsto.
+
+Informação que mudaria a decisão:
+Frequência esperada de picos como o da semana passada (se forem raros,
+autoscaling sob demanda compensa; se forem frequentes, pode valer mais
+provisionar capacidade fixa maior). Custo estimado de implementar o
+particionamento por tenant — sem esse número, não dá para dizer se vale
+antecipar essa melhoria de médio prazo. Se o teto de orçamento de +8% é
+rígido ou tem alguma folga negociável.
+```
+
+## 3. Curadoria
+
+**Técnica escolhida:** matriz de decisão dirigida — forcei o modelo a
+avaliar cada estratégia contra CADA restrição individualmente (não em
+bloco), porque testes preliminares mostravam a IA fazendo uma avaliação
+vaga tipo "essa opção é boa em geral" sem checar SLA por SLA. Isso importa
+porque neste cenário as quatro restrições têm pesos e naturezas diferentes
+(dois SLAs técnicos, um orçamento, um requisito de negócio inegociável) —
+misturá-las escondia justamente o trade-off que a decisão precisa expor.
+
+**O que precisou de refino:** a primeira versão do prompt terminava direto
+na recomendação sem declarar o que estava sendo sacrificado. Adicionei a
+seção "Trade-offs aceitos" como step obrigatório — sem ela, a resposta
+soava como se a combinação recomendada resolvesse tudo sem custo algum, o
+que não é verdade (ainda existe atraso aceito no Forge e custo adicional de
+autoscaling).
+
+**Observação sobre o resultado:** o modelo recomendou uma combinação de
+estratégias em vez de escolher uma só — esse é o comportamento esperado do
+prompt, não uma falha de seguir instrução; o cenário realmente não tem uma
+solução única defensável. É exatamente esse tipo de saída aberta que vai
+exigir avaliação por julgamento (LLM-as-judge) em vez de assert
+determinístico, quando chegarmos no CP08/CP09.
