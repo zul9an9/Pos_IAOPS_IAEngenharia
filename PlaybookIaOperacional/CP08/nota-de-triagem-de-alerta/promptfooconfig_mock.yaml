@@ -1,0 +1,35 @@
+description: nota-de-triagem-de-alerta — 5 rótulos, handle @time e no máximo 8 linhas
+prompts:
+- file://prompt.md
+providers:
+- file:///home/claude/prompt-registry/mock-provider.js
+defaultTest:
+  assert:
+  - type: contains
+    value: 'ALERTA:'
+  - type: contains
+    value: 'IMPACTO:'
+  - type: contains
+    value: 'HIPÓTESE INICIAL:'
+  - type: contains
+    value: 'AÇÃO IMEDIATA:'
+  - type: contains
+    value: 'ESCALAR PARA:'
+  - type: regex
+    value: ESCALAR PARA:.*@\w+
+  - type: javascript
+    value: output.split("\n").filter(l => l.trim().length > 0).length <= 8
+  - type: latency
+    threshold: 5000
+  - type: cost
+    threshold: 0.01
+tests:
+- description: 'Alerta 1 — Sentinel: autoscaler no teto de réplicas'
+  vars:
+    alerta_cru: 2026-05-12 14:02:09 UTC [Sentinel] autoscaler hit max replicas (60/60) on sentinel-api, queue depth on Relay growing 2k/min, CPU avg 88%, tenant stark-industries sending 4x baseline volume after onboarding new region
+- description: 'Alerta 2 — Relay: rejeição de ingestão após deploy'
+  vars:
+    alerta_cru: 2026-05-13 03:11:00 UTC [Relay] ingest reject rate 6% for 8min, tenant wakanda-systems, buffer saturated after deploy 02:55
+- description: 'Alerta 3 — Forge: lag de consumer subindo'
+  vars:
+    alerta_cru: 2026-05-13 11:40:22 UTC [Forge] consumer lag 9min and climbing, batch forge-batch-ingest delayed after previous job failure, downstream Sentinel starting to lag
