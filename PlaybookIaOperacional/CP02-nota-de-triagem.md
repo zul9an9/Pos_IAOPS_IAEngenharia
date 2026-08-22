@@ -1,6 +1,6 @@
 # Checkpoint 02 — Nota de Triagem Padronizada
 
-## Contexto
+## Contexto CP02-nota-de-triagem.md
 
 Prompt parametrizável que transforma um alerta cru do Sentinel em uma nota de
 triagem padronizada, para que qualquer plantonista escreva (e o próximo
