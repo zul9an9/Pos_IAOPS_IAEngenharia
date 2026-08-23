@@ -1,0 +1,63 @@
+description: "CP08 — NetworkPolicy determinística"
+prompts:
+  - file://prompt.md
+providers:
+  - id: openai:gpt-4o-mini
+    config:
+      max_tokens: 700
+  - id: google:gemini-2.5-flash-lite
+    config:
+      maxOutputTokens: 700
+defaultTest:
+  assert:
+    - type: contains
+      value: "kind: NetworkPolicy"
+    - type: regex
+      value: '(?s)policyTypes:.*- Ingress.*- Egress'
+    - type: not-contains
+      value: "- {}"
+    - type: javascript
+      value: /app:\s*forge[\s\S]*port:\s*5432/i.test(output) && /app:\s*cerebro[\s\S]*port:\s*9200/i.test(output)
+    - type: regex
+      value: '(?s)ingress:.*app:\s*relay'
+    - type: javascript
+      value: |
+        const required = ['# FLOW: Relay -> Sentinel', '# FLOW: API Gateway -> Sentinel', '# FLOW: Sentinel -> Forge', '# FLOW: Sentinel -> Cerebro', '# FLOW: Sentinel -> DNS'];
+        return required.every(x => output.includes(x));
+    - type: latency
+      threshold: 5000
+    - type: cost
+      threshold: 0.01
+tests:
+  - description: "manifesto permissivo + regras + mapa de servicos"
+    vars:
+      manifesto_atual: |-
+        apiVersion: networking.k8s.io/v1
+        kind: NetworkPolicy
+        metadata:
+          name: sentinel-allow
+          namespace: sentinel-prod
+        spec:
+          podSelector: {}
+          policyTypes:
+            - Ingress
+            - Egress
+          ingress:
+            - {}
+          egress:
+            - {}
+      requisitos_de_seguranca: |-
+        NetworkPolicy para o namespace "sentinel-prod":
+        - pods do Sentinel só aceitam tráfego de entrada do Relay (consumo de eventos) e do gateway de API da plataforma
+        - pods do Sentinel só fazem saída para: Forge (warehouse, porta 5432), Cerebro (busca, porta 9200) e DNS interno
+        - nada de "allow all" em ingress ou egress
+        - política default-deny explícita no namespace
+        - toda regra precisa de comentário dizendo qual fluxo legítimo ela libera
+      mapa_de_servicos: |-
+        Sentinel     → namespace sentinel-prod, pods com label app=sentinel
+        Relay        → namespace relay-prod,    pods com label app=relay
+        API gateway  → namespace edge,          pods com label app=api-gateway
+        Forge        → namespace forge-prod,    pods com label app=forge,   porta 5432
+        Cerebro      → namespace cerebro-prod,  pods com label app=cerebro, porta 9200
+        DNS interno  → namespace kube-system,   pods com label k8s-app=kube-dns, porta 53
+      resultado_anterior: ""
