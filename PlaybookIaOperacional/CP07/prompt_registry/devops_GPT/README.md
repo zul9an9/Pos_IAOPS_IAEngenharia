@@ -1,0 +1,1 @@
+Gerado pelo CHAT-GPT
