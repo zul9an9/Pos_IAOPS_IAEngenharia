@@ -1,0 +1,81 @@
+description: "CP08 — nota-de-triagem determinística"
+prompts:
+  - file://prompt.md
+providers:
+  - id: openai:gpt-4o-mini
+    config:
+      max_tokens: 250
+  - id: google:gemini-2.5-flash-lite
+    config:
+      maxOutputTokens: 250
+tests:
+  - description: "alerta Sentinel saturando replicas"
+    vars:
+      alerta_cru: >-
+        2026-05-12 14:02:09 UTC [Sentinel] autoscaler hit max replicas (60/60)
+        on sentinel-api, queue depth on Relay growing 2k/min, CPU avg 88%, tenant
+        stark-industries sending 4x baseline volume after onboarding new region
+    assert:
+      - type: contains
+        value: "ALERTA:"
+      - type: contains
+        value: "IMPACTO:"
+      - type: contains
+        value: "HIPÓTESE INICIAL:"
+      - type: contains
+        value: "AÇÃO IMEDIATA:"
+      - type: regex
+        value: 'ESCALAR PARA:.*@\\w+'
+      - type: javascript
+        value: |
+          const lines = output.trim().split(/\\r?\\n/).filter(Boolean);
+          return lines.length <= 8;
+      - type: latency
+        threshold: 5000
+      - type: cost
+        threshold: 0.01
+  - description: "alerta Relay rejeitando ingestao"
+    vars:
+      alerta_cru: >-
+        2026-05-13 03:11:00 UTC [Relay] ingest reject rate 6% for 8min, tenant
+        wakanda-systems, buffer saturated after deploy 02:55
+    assert:
+      - type: contains
+        value: "ALERTA:"
+      - type: contains
+        value: "IMPACTO:"
+      - type: contains
+        value: "HIPÓTESE INICIAL:"
+      - type: contains
+        value: "AÇÃO IMEDIATA:"
+      - type: regex
+        value: 'ESCALAR PARA:.*@\\w+'
+      - type: javascript
+        value: output.trim().split(/\\r?\\n/).filter(Boolean).length <= 8
+      - type: latency
+        threshold: 5000
+      - type: cost
+        threshold: 0.01
+  - description: "alerta Forge com lag"
+    vars:
+      alerta_cru: >-
+        2026-05-13 11:40:22 UTC [Forge] consumer lag 9min and climbing, batch
+        forge-batch-ingest delayed after previous job failure, downstream Sentinel
+        starting to lag
+    assert:
+      - type: contains
+        value: "ALERTA:"
+      - type: contains
+        value: "IMPACTO:"
+      - type: contains
+        value: "HIPÓTESE INICIAL:"
+      - type: contains
+        value: "AÇÃO IMEDIATA:"
+      - type: regex
+        value: 'ESCALAR PARA:.*@\\w+'
+      - type: javascript
+        value: output.trim().split(/\\r?\\n/).filter(Boolean).length <= 8
+      - type: latency
+        threshold: 5000
+      - type: cost
+        threshold: 0.01
