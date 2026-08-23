@@ -1,0 +1,73 @@
+description: triagem-de-pods — causa e ação por pod, com caso saudável explícito
+prompts:
+- file://prompt.md
+providers:
+- file:///home/claude/prompt-registry/mock-provider.js
+defaultTest:
+  assert:
+  - type: latency
+    threshold: 5000
+  - type: cost
+    threshold: 0.01
+tests:
+- description: Entrada 1 — pod reiniciando (OOMKilled)
+  vars:
+    snapshot: "$ kubectl get pods -n sentinel-prod\nNAME                             READY   STATUS             RESTARTS       AGE\nsentinel-api-7d9c8b6f4-h4m2t     0/1     CrashLoopBackOff   5 (30s ago)    22m\nsentinel-worker-6c4b9f7d-2xk9    1/1     Running            0              6d\n\n$ kubectl describe pod sentinel-api-7d9c8b6f4-h4m2t -n sentinel-prod\nContainers:\n  sentinel-api:\n    State:          Waiting\n      Reason:       CrashLoopBackOff\n    Last State:     Terminated\n      Reason:       OOMKilled\n      Exit Code:    137\n    Limits:\n      memory:  512Mi\nEvents:\n  Warning  BackOff  1m (x5)  kubelet  Back-off restarting failed container\n\n$ kubectl logs sentinel-api-7d9c8b6f4-h4m2t -n sentinel-prod --previous\nINFO  loading alert cache into memory\nWARN  heap usage 410Mi\nWARN  heap usage 470Mi high GC pressure\nWARN  heap usage 498Mi high GC pressure\nFATAL out of memory, shutting down process\n"
+  assert:
+  - type: contains
+    value: sentinel-api-7d9c8b6f4-h4m2t
+  - type: contains-any
+    value:
+    - OOMKilled
+    - memória
+    - memory
+- description: Entrada 2 — dois pods problemáticos (imagem inexistente + sem CPU)
+  vars:
+    snapshot: "$ kubectl get pods -n sentinel-prod\nNAME                             READY   STATUS             RESTARTS   AGE\nsentinel-api-7d9c8b6f4-zzp10     0/1     ImagePullBackOff   0          4m\nsentinel-api-7d9c8b6f4-abc12     1/1     Running            0          3d\nsentinel-ingest-8f7a9c5b-4dkqm   0/1     Pending            0          4m\n\n$ kubectl describe pod sentinel-api-7d9c8b6f4-zzp10 -n sentinel-prod\nEvents:\n  Warning  Failed  2m  kubelet  Failed to pull image \"registry.aegis/sentinel-api:2.9.2\": manifest unknown\n  Warning  Failed  2m  kubelet  Error: ImagePullBackOff\n\n$ kubectl describe pod sentinel-ingest-8f7a9c5b-4dkqm -n sentinel-prod\nContainers:\n  ingest:\n    Requests:\n      cpu: 2\nEvents:\n  Warning  FailedScheduling  3m  default-scheduler  0/6 nodes are available: 6 Insufficient cpu\n"
+  assert:
+  - type: contains
+    value: sentinel-api-7d9c8b6f4-zzp10
+  - type: contains
+    value: sentinel-ingest-8f7a9c5b-4dkqm
+  - type: contains-any
+    value:
+    - 2.9.2
+    - ImagePullBackOff
+  - type: contains-any
+    value:
+    - Insufficient
+    - Insufficient cpu
+    - falta de cpu
+    - falta de recurso
+- description: Entrada 3 — tudo saudável (não pode classificar pod como em falha)
+  vars:
+    snapshot: '$ kubectl get pods -n sentinel-prod
+
+      NAME                             READY   STATUS    RESTARTS      AGE
+
+      sentinel-api-7d9c8b6f4-abc12     1/1     Running   0             3d
+
+      sentinel-worker-6c4b9f7d-2xk9    1/1     Running   1 (3d ago)    9d
+
+      sentinel-ingest-8f7a9c5b-9pol2   1/1     Running   0             3d
+
+
+      $ kubectl get events -n sentinel-prod --field-selector type=Warning
+
+      No resources found in sentinel-prod namespace.
+
+      '
+  assert:
+  - type: contains-any
+    value:
+    - saudá
+    - saudavel
+    - healthy
+    - nenhum pod
+    - Nenhuma ação
+  - type: not-contains
+    value: Causa provável
+  - type: not-contains
+    value: OOMKilled
+  - type: not-contains
+    value: ImagePullBackOff
