@@ -1,0 +1,30 @@
+description: "CP10 — cobertura do prompt de contrapressão do Relay"
+prompts:
+  - file://prompt.md
+providers:
+  - id: openai:gpt-4o-mini
+    config:
+      max_tokens: 900
+      temperature: 0
+tests:
+  - description: "Relé sob pico de 320k msgs/s"
+    vars:
+      cenario: |-
+        Relay: throughput sustentado 180k msgs/s; pico 320k msgs/s por 25min; retenção atual 4h.
+        Consumidores: Forge (ingestão), Sentinel (alerting em tempo real).
+        Restrições: Sentinel <= 60s; Forge <= 15min; orçamento 8% acima; perda de telemetry é inaceitável.
+      opcoes: |-
+        - priorizar Sentinel na frente do Forge
+        - fila separada para reprocessamento (dead-letter queue)
+        - dividir Relay por cliente
+        - autoscaling de consumidores
+    assert:
+      - type: llm-rubric
+        provider: openai:gpt-4o-mini
+        value: |
+          A resposta deve comparar pelo menos três alternativas, explicitar prós/contras e recomendar uma opção ou combinação que priorize o SLA do Sentinel, preserve a ausência de perda de telemetry e trate custo/reversibilidade. Deve mencionar pelo menos um trade-off real, não apenas listar opções. Retorne pass=true se tudo estiver presente; score de 0 a 1 proporcional à cobertura.
+        threshold: 0.8
+      - type: latency
+        threshold: 5000
+      - type: cost
+        threshold: 0.01
