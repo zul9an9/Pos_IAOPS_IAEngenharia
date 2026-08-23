@@ -1,0 +1,57 @@
+description: "CP09 — Gate LLM-as-judge para causa-raiz do Cerebro"
+prompts:
+  - file://prompt.md
+providers:
+  - id: openai:gpt-4o-mini
+    config:
+      max_tokens: 900
+      temperature: 0
+tests:
+  - description: "Cerebro — janela completa 08h-10h"
+    vars:
+      configuracao: |-
+        cerebro:
+          shards: 12
+          replicas_per_shard: 1
+          jvm_heap: 8g
+          refresh_interval: 1s
+          reindex_job:
+            schedule: "0 2 * * *"
+            avg_duration_min: 90
+          query_cache:
+            enabled: true
+            size_mb: 512
+      metricas: |-
+        timestamp              search_p99_ms   indexed_docs_per_s   heap_used_pct   cache_hit_pct
+        2026-05-13 08:00 UTC   850             4200                 61              74
+        2026-05-13 08:30 UTC   1100            4100                 68              71
+        2026-05-13 09:00 UTC   2300            9800                 79              58
+        2026-05-13 09:30 UTC   4100            11200                88              41
+        2026-05-13 10:00 UTC   6700            12400                94              29
+      logs: |-
+        [2026-05-13T08:02:11,540][INFO ][o.e.t.LoggingTaskListener][cerebro-node-3] reindex task [88123] (scheduled 02:00) progress, created [3.8M]/[10M] docs (38%)
+        [2026-05-13T08:14:33,019][WARN ][o.e.m.j.JvmGcMonitorService][cerebro-node-3] heap [4.9gb]->[3.1gb]/[8gb]
+        [2026-05-13T08:41:07,222][INFO ][o.e.i.IndexingMemoryController][cerebro-node-3] now throttling indexing for shard [logs-2026.05][7]
+        [2026-05-13T09:03:55,810][WARN ][o.e.t.ThreadPool][cerebro-node-3] write thread pool queue at [150/200]
+        [2026-05-13T09:31:17,653][WARN ][o.e.i.b.HierarchyCircuitBreakerService][cerebro-node-3] usage [6.9gb/8gb] (86%)
+        [2026-05-13T09:58:41,102][WARN ][o.e.t.ThreadPool][cerebro-node-3] write thread pool queue full [200/200], rejecting bulk — EsRejectedExecutionException
+        [2026-05-13T09:58:46,330][DEBUG][o.e.s.query.QueryPhase][cerebro-node-3] shard [logs-2026.05][7] search took [5031ms]
+        [2026-05-13T09:58:46,512][ERROR][o.e.s.SearchService][cerebro-node-3] search returned partial results: 11/12 shards succeeded
+        [2026-05-13T09:58:46,701][WARN ][o.e.i.b.HierarchyCircuitBreakerService][cerebro-node-3] circuit breaker tripped, usage [7.7gb/8gb] (96%)
+        [2026-05-13T09:58:47,001][WARN ][o.e.i.cache.query.IndicesQueryCache][cerebro-node-3] hit_ratio dropped to 0.29
+        [2026-05-13T10:01:12,778][ERROR][o.e.s.SearchService][cerebro-node-3] CircuitBreakingException: [parent] Data too large, would be [7.9gb/8gb]
+      contexto_operacional: "Tratar os artefatos como produção; antes de qualquer uso externo, redigir segredos ou identificadores sensíveis."
+    assert:
+      - type: llm-rubric
+        provider: openai:gpt-4o-mini
+        value: |
+          Avalie a saída em quatro critérios, cada um com 0, 1 ou 2 pontos. Critério 1: causa-raiz correta — deve apontar a reindexação de 10M ainda em 41% às 10h como motor da sobrecarga de indexação/memória, culminando em heap próximo de 8g, circuit breaker, timeouts e resultados parciais. Critério 2: correlação x causa — deve separar causa de sintomas/efeitos, como cache hit baixo e rejeições. Critério 3: ação proporcional — deve propor contenção ou reagendamento da reindexação e revisão de heap/limites, sem mudanças desproporcionais. Critério 4: honestidade epistêmica — deve declarar o que os dados não permitem concluir e evitar inventar arquitetura. Some os quatro critérios. Retorne JSON {"pass": boolean, "score": number, "reason": string}, onde score = total/8. Só use pass=true quando total >= 6 e nenhum critério for 0.
+        threshold: 0.75
+      - type: latency
+        threshold: 5000
+      - type: cost
+        threshold: 0.01
+defaultTest:
+  options:
+    rubricPrompt: >
+      [{"role":"system","content":"Você é um juiz de qualidade. Seja rigoroso e consistente. Use exatamente os quatro critérios e a regra de gate fornecidos na rubrica."},{"role":"user","content":"Saída a avaliar:\n{{output}}\n\nRubrica:\n{{rubric}}\n\nRetorne somente JSON com pass, score e reason."}]
