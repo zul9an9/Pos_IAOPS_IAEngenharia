@@ -1,0 +1,26 @@
+description: "CP10 — cobertura do prompt de migração do Forge"
+prompts:
+  - file://prompt.md
+providers:
+  - id: openai:gpt-4o-mini
+    config:
+      max_tokens: 1000
+      temperature: 0
+tests:
+  - description: "Forge de lote para event-driven"
+    vars:
+      estado_atual: |-
+        job cron a cada 60min; 14 etapas Spark; ~40min; tabelas particionadas por hora; falha de lote duplica volume seguinte; dependem Sentinel, Cerebro e billing da Pepper.
+      requisitos_migracao: |-
+        consumir do Relay continuamente; manter dependências durante a transição; nada de big-bang; passos pequenos e reversíveis.
+      resultado_anterior: ""
+    assert:
+      - type: llm-rubric
+        provider: openai:gpt-4o-mini
+        value: |
+          A resposta deve respeitar a cadeia em quatro elos, começar pelo diagnóstico, propor coexistência/transição incremental, detalhar etapas reversíveis e tratar explicitamente Sentinel, Cerebro e billing. Deve proibir big-bang e definir sinais de avanço e rollback. Retorne pass=true se todos os elementos estiverem presentes; score de 0 a 1 proporcional à cobertura.
+        threshold: 0.8
+      - type: latency
+        threshold: 5000
+      - type: cost
+        threshold: 0.01
