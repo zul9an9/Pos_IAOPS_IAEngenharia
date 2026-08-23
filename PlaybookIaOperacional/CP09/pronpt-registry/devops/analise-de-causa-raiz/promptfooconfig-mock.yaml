@@ -1,0 +1,29 @@
+description: causa-raiz — gate de qualidade LLM-as-judge (rubrica 0-8, corte >=6, nenhum critério zerado)
+prompts:
+- 'Analise a degradação (variante: {{variant}}).'
+providers:
+- file:///home/claude/prompt-registry/target-mock.js
+defaultTest:
+  options:
+    provider: file:///home/claude/prompt-registry/judge-mock.js
+    rubricPrompt: "Você é um revisor sênior de confiabilidade avaliando UMA análise de\ncausa-raiz de uma degradação no Elasticsearch (sistema Cerebro). Avalie\nsomente a análise fornecida, nos quatro critérios abaixo, cada um numa\nescala de 0 a 2 (0 = não atende, 1 = parcial/impreciso, 2 = atende de\nforma correta e específica).\n\n1. causa_raiz_correta — aponta a causa REAL: a reindexação travada (o job\n   de reindex que não concluiu no tempo esperado) saturando o heap, o que\n   leva a circuit breaker, timeouts de busca e queda do cache hit. Dar 0\n   se apontar um SINTOMA (circuit breaker, timeout, cache, latência) como\n   se fosse a causa, ou se não identificar a reindexação.\n2. correlacao_x_causa — separa causa de consequência. Dar 2 se reconhece\n   explicitamente que a queda do cache hit e a latência subindo são\n   EFEITOS da pressão de heap, não causas independentes. Dar 0 se trata\n   um efeito como causa.\n3. acao_proporcional — propõe ação coerente com o diagnóstico (conter /\n   reagendar a reindexação; rever heap/limites como revisão posterior).\n   Dar 0 se SUPERDIMENSIONA (ex.: \"refazer o cluster\", \"reconstruir todos\n   os shards\") ou se SUBDIMENSIONA (ex.: apenas \"monitorar\"). Dar 1 se a\n   ação é aceitável mas não ataca a alavanca real (a reindexação).\n4. honestidade_epistemica — reconhece o que os dados NÃO permitem concluir\n   (ex.: por que o reindex atrasou; se só um nó ou o cluster todo). Dar 0\n   se FABRICA certeza inventando um dado que não está nos artefatos (ex.:\n   \"o volume de dados dobrou\"), ou se afirma a causa do atraso sem base.\n\nAnálise a avaliar:\n<<<\n{{ output }}\n>>>\n\nCalcule total = soma dos quatro critérios (0 a 8).\nDefina pass = true SOMENTE se total >= 6 E nenhum dos quatro critérios for 0.\nResponda SOMENTE com um objeto JSON válido, sem nenhum texto fora dele:\n{\"causa_raiz_correta\": <0-2>, \"correlacao_x_causa\": <0-2>, \"acao_proporcional\": <0-2>, \"honestidade_epistemica\": <0-2>, \"total\": <0-8>, \"score\": <total dividido por 8>, \"reason\": \"<justificativa curta citando evidência da análise>\", \"pass\": <true|false>}\n"
+  assert:
+  - type: latency
+    threshold: 5000
+  - type: cost
+    threshold: 0.01
+tests:
+- description: GOLD — análise correta e honesta
+  vars:
+    variant: gold
+  assert: &id001
+  - type: llm-rubric
+    value: 'Rubrica de causa-raiz: 4 critérios (0-2). Aprova se total>=6 e nenhum critério zerado.'
+- description: SYMPTOM — aponta sintoma como causa
+  vars:
+    variant: symptom
+  assert: *id001
+- description: FABRICATED — fabrica dado e superdimensiona ação
+  vars:
+    variant: fabricated
+  assert: *id001
