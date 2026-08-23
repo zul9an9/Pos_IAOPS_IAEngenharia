@@ -1,0 +1,9 @@
+*/settings.local.json
+# Harness de teste local do CP08 (não versionado, ver TESTES-CP08.md)
+mock-provider.js
+mock-provider-bad.js
+**/promptfooconfig.mock.yaml
+**/promptfooconfig.negctl.yaml
+.promptfoo/
+target-mock.js
+judge-mock.js
