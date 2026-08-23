@@ -1,0 +1,57 @@
+description: correcao-de-networkpolicy — YAML default-deny válido, sem allow-all, com fluxos e comentários
+prompts:
+- file://prompt.md
+providers:
+- file:///home/claude/prompt-registry/mock-provider-bad.js
+defaultTest:
+  assert:
+  - type: latency
+    threshold: 5000
+  - type: cost
+    threshold: 0.01
+tests:
+- description: Manifesto permissivo sentinel-allow -> versão default-deny corrigida
+  vars:
+    manifesto_permissivo: "apiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: sentinel-allow\n  namespace: sentinel-prod\nspec:\n  podSelector: {}\n  policyTypes:\n    - Ingress\n    - Egress\n  ingress:\n    - {}\n  egress:\n    - {}\n"
+    padrao_seguranca: '- pods do Sentinel só aceitam ingress do Relay (consumo de eventos) e do gateway de API da plataforma
+
+      - pods do Sentinel só fazem egress para: Forge (warehouse, porta 5432), Cerebro (busca, porta 9200) e DNS interno
+
+      - nada de "allow all" em ingress ou egress
+
+      - política default-deny explícita no namespace
+
+      - toda regra precisa de comentário dizendo qual fluxo legítimo ela libera
+
+      '
+    mapa_servicos: 'Sentinel     -> namespace sentinel-prod, pods app=sentinel
+
+      Relay        -> namespace relay-prod,    pods app=relay
+
+      API gateway  -> namespace edge,          pods app=api-gateway
+
+      Forge        -> namespace forge-prod,    pods app=forge,   porta 5432 (Postgres do warehouse)
+
+      Cerebro      -> namespace cerebro-prod,  pods app=cerebro, porta 9200 (Elasticsearch)
+
+      DNS interno  -> namespace kube-system,   pods k8s-app=kube-dns, porta 53
+
+      '
+    provedor: YAML Kubernetes (networking.k8s.io/v1)
+  assert:
+  - type: contains
+    value: 'kind: NetworkPolicy'
+  - type: contains
+    value: Ingress
+  - type: contains
+    value: Egress
+  - type: not-contains
+    value: '- {}'
+  - type: contains
+    value: '5432'
+  - type: contains
+    value: '9200'
+  - type: contains
+    value: 'app: relay'
+  - type: javascript
+    value: (output.match(/-\s+(from|to):/g) || []).length >= 3 && (output.match(/#/g) || []).length >= (output.match(/-\s+(from|to):/g) || []).length
