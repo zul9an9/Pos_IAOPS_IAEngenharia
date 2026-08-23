@@ -1,0 +1,105 @@
+# CP09 — Gate de qualidade (LLM-as-judge) para o prompt de causa-raiz (CP03).
+# Roda EM CIMA do CP08: mantém os limites operacionais (latency/cost) e adiciona
+# um juiz que aplica a rubrica de qualidade e REPROVA a saída abaixo do corte.
+#
+# Rubrica: 4 critérios, cada um 0-2 (0=não atende, 1=parcial, 2=atende), total 0-8.
+#   1. causa_raiz_correta   2. correlacao_x_causa
+#   3. acao_proporcional    4. honestidade_epistemica
+# Aprova se: total >= 6 E nenhum critério zerado. (a lógica de pass vive no juiz)
+description: "causa-raiz — gate de qualidade LLM-as-judge (rubrica 0-8, corte >=6, nenhum critério zerado)"
+
+prompts:
+  - file://prompt.md
+
+# Modelos que GERAM a análise de causa-raiz (os avaliados pelo gate).
+providers:
+  - openai:gpt-4o-mini
+  - anthropic:messages:claude-haiku-4-5-20251001
+
+defaultTest:
+  options:
+    # JUIZ: modelo mais forte e independente que os avaliados, para reduzir viés
+    # de auto-avaliação. Trocável; precisa ser capaz o suficiente para a rubrica.
+    provider: openai:gpt-4o
+    # Prompt do juiz — aplica EXATAMENTE a rubrica e devolve JSON estruturado.
+    # Âncoras calibradas (ver RUBRICA-CP09.md): superdimensionar a ação = 0 no
+    # critério 3; fabricar dado ausente = 0 no critério 4.
+    rubricPrompt: |
+      Você é um revisor sênior de confiabilidade avaliando UMA análise de
+      causa-raiz de uma degradação no Elasticsearch (sistema Cerebro). Avalie
+      somente a análise fornecida, nos quatro critérios abaixo, cada um numa
+      escala de 0 a 2 (0 = não atende, 1 = parcial/impreciso, 2 = atende de
+      forma correta e específica).
+
+      1. causa_raiz_correta — aponta a causa REAL: a reindexação travada (o job
+         de reindex que não concluiu no tempo esperado) saturando o heap, o que
+         leva a circuit breaker, timeouts de busca e queda do cache hit. Dar 0
+         se apontar um SINTOMA (circuit breaker, timeout, cache, latência) como
+         se fosse a causa, ou se não identificar a reindexação.
+      2. correlacao_x_causa — separa causa de consequência. Dar 2 se reconhece
+         explicitamente que a queda do cache hit e a latência subindo são
+         EFEITOS da pressão de heap, não causas independentes. Dar 0 se trata
+         um efeito como causa.
+      3. acao_proporcional — propõe ação coerente com o diagnóstico (conter /
+         reagendar a reindexação; rever heap/limites como revisão posterior).
+         Dar 0 se SUPERDIMENSIONA (ex.: "refazer o cluster", "reconstruir todos
+         os shards") ou se SUBDIMENSIONA (ex.: apenas "monitorar"). Dar 1 se a
+         ação é aceitável mas não ataca a alavanca real (a reindexação).
+      4. honestidade_epistemica — reconhece o que os dados NÃO permitem concluir
+         (ex.: por que o reindex atrasou; se só um nó ou o cluster todo). Dar 0
+         se FABRICA certeza inventando um dado que não está nos artefatos (ex.:
+         "o volume de dados dobrou"), ou se afirma a causa do atraso sem base.
+
+      Análise a avaliar:
+      <<<
+      {{ output }}
+      >>>
+
+      Calcule total = soma dos quatro critérios (0 a 8).
+      Defina pass = true SOMENTE se total >= 6 E nenhum dos quatro critérios for 0.
+      Responda SOMENTE com um objeto JSON válido, sem nenhum texto fora dele:
+      {"causa_raiz_correta": <0-2>, "correlacao_x_causa": <0-2>, "acao_proporcional": <0-2>, "honestidade_epistemica": <0-2>, "total": <0-8>, "score": <total dividido por 8>, "reason": "<justificativa curta citando evidência da análise>", "pass": <true|false>}
+  assert:
+    # limites operacionais herdados do CP08 (medidos na geração da análise)
+    - type: latency
+      threshold: 5000
+    - type: cost
+      threshold: 0.01
+
+tests:
+  - description: "Degradação do Cerebro (reindex travado) -> análise de causa-raiz"
+    vars:
+      config_cluster: |
+        cluster: cerebro-prod
+        node: cerebro-node-3
+        shards: 12
+        replicas: 1
+        jvm_heap: 8g
+        query_cache: enabled
+        reindex_job:
+          task_id: 88123
+          avg_duration_min: 90
+          schedule: "02:00 daily"
+      metricas: |
+        time   search_p99_ms  indexed_docs_per_s  heap_pct  cache_hit_pct
+        08:02  850            4200                61        71
+        08:41  1400           5200                70        64
+        09:00  2100           11200               88        41
+        09:44  2380           11800               92        33
+        09:58  5031           12400               96        29
+      logs: |
+        [08:00] task[88123] reindex started, source docs=10M, avg_duration_min=90
+        [08:02] reindex progress 38% (3.8M/10M)
+        [08:14][gc][young] duration=620ms, heap=3.1gb/8gb
+        [08:41] IndexingMemoryController now throttling indexing on shard [7]
+        [09:12][gc][old] duration=1.1s, heap=5.9gb/8gb
+        [09:31] [parent] circuit breaker at 86%, approaching limit
+        [09:44] slow query took 2380ms
+        [09:58] write queue full (200/200), rejecting bulk requests
+        [09:58] CircuitBreakingException: [parent] tripped at 96%
+        [09:58] search timed out after 5031ms, returned partial (11/12 shards)
+        [10:00] rejected 1284 bulk requests in 5min; 3/20 queries failed
+        [10:00] task[88123] reindex progress 41%
+    assert:
+      - type: llm-rubric
+        value: "Rubrica de causa-raiz: 4 critérios (0-2). Aprova se total>=6 e nenhum critério zerado."
