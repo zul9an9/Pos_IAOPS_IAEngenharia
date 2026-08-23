@@ -1,71 +1,68 @@
 ---
-nome: triagem-de-pods
-descricao: Analisa um snapshot de pods Kubernetes, cruza status, eventos e logs, identifica causas prováveis e recomenda a próxima ação do plantão.
+nome: migracao-forge-event-driven
+descricao: Conduz uma cadeia de análise e planejamento para migrar o Forge de lote horário para processamento orientado a eventos, preservando dependências e reversibilidade.
 versao: 1.0.0
 tags:
-  - kubernetes
-  - sre
-  - observabilidade
-  - troubleshooting
+  - data-platform
+  - event-driven
+  - migracao
+  - arquitetura
 inputs:
-  - nome: snapshot_cluster
-    descricao: Saída coletada do cluster contendo lista de pods, eventos de describe e logs relevantes.
-  - nome: contexto_operacional
-    descricao: Contexto opcional do serviço, namespace ou critérios de criticidade usados pelo plantão.
+  - nome: estado_atual
+    descricao: Arquitetura, fluxo de processamento, dependências e fragilidades atuais do Forge.
+  - nome: requisitos_migracao
+    descricao: Garantias que precisam ser mantidas durante a mudança, incluindo continuidade e ausência de big-bang.
+  - nome: resultado_anterior
+    descricao: Saída do elo anterior da cadeia; no primeiro elo, pode ser vazia.
 ---
 
-# Triagem de pods
+# Migração do Forge para event-driven
 
 ## Objetivo
 
-Transformar um snapshot já coletado do Kubernetes em uma triagem legível, cruzando estado, eventos e logs para chegar à causa provável e à próxima ação do plantão.
+Quebrar uma migração grande em uma sequência de decisões menores, usando a saída de cada etapa como entrada da próxima e preservando rollback.
 
 ## Casos de uso
 
-- Plantões SRE em que um pod reinicia, não sobe ou perde disponibilidade.
-- Primeira triagem antes de escalar para o time responsável pelo serviço.
-- Situações em que é importante separar sintoma (`CrashLoopBackOff`, `Pending`, `ImagePullBackOff`) de causa.
+- Migração de jobs batch para consumidores contínuos.
+- Mudanças em pipelines com vários consumidores downstream.
+- Projetos em que dual-run, coexistência e rollback são necessários.
 
-## Exemplo
+## Execução de referência
 
-Entrada baseada no primeiro caso do Checkpoint 01:
+Modelo: GPT-5.6 Luna.
+
+### Elo 1 — diagnóstico
 
 ```text
-$ kubectl get pods -n sentinel-prod
-sentinel-api-7d9c8b6f4-h4m2t  0/1  CrashLoopBackOff  14 (90s ago)  42m
-
-Last State: Terminated / OOMKilled / Exit Code 137
-Limits: memory: 512Mi
-
-Logs:
-heap 410Mi/512Mi
-heap 498Mi/512Mi
-out of memory, shutting down process
+O Forge tem um agendamento horário, 14 etapas Spark (~40min), tabelas particionadas por hora e dependências do Sentinel, Cerebro e billing. O principal risco é alterar o ritmo de disponibilidade sem quebrar os consumidores existentes.
 ```
 
-Execução de referência: o resultado deve apontar que o pod está em `CrashLoopBackOff`, mas que a causa provável é pressão de memória culminando em `OOMKilled`, sustentada pelo heap próximo ao limite e pelo log fatal de falta de memória. A próxima ação deve ser investigar o consumo de memória e a adequação do limite antes de apenas reiniciar o pod.
-
-## Modelo e saída de referência
-
-Modelo: GPT-5.6 Luna, usado nesta migração para executar o prompt contra os dados do checkpoint.
-
-Saída resumida:
+### Elo 2 — estratégia
 
 ```text
-STATUS GERAL: incidente
+Introduzir consumo contínuo em paralelo ao batch, validar equivalência dos resultados e mover consumidores gradualmente. Evitar desligar o batch antes de comprovar cobertura e correção do novo fluxo.
+```
 
-PODS PROBLEMÁTICOS:
-- sentinel-api-7d9c8b6f4-h4m2t
-  - Evidências: CrashLoopBackOff; Last State OOMKilled; Exit Code 137; heap 498Mi/512Mi; log de falta de memória.
-  - Causa provável: limite de memória insuficiente para a carga de cache, provocando pressão de heap e OOMKill.
-  - Próxima ação: confirmar o padrão de consumo e revisar limite/uso de memória antes de nova intervenção.
-  - Confiança: alta
+### Elo 3 — plano
 
-PRÓXIMO PASSO DO PLANTÃO: investigar a pressão de memória e acompanhar os demais pods.
+```text
+1. instrumentar métricas de equivalência e lag;
+2. executar fluxo contínuo em paralelo;
+3. comparar resultados;
+4. migrar consumidores por dependência;
+5. reduzir gradualmente o batch;
+6. aposentar o batch apenas após janela de estabilidade.
+```
+
+### Elo 4 — reversibilidade
+
+```text
+Rollback: reativar o caminho batch e os consumidores anteriores enquanto o fluxo novo é isolado. Reverter diante de divergência de dados, lag acima do limite ou impacto em Sentinel/Cerebro/billing.
 ```
 
 ## Limitações
 
-- O prompt não coleta dados do cluster e depende integralmente do snapshot fornecido.
-- A causa provável é uma hipótese baseada nas evidências disponíveis, não prova causal definitiva.
-- Um snapshot incompleto pode levar a uma hipótese de baixa confiança.
+- Não define implementação tecnológica detalhada sem requisitos adicionais.
+- A cadeia depende de métricas de equivalência, qualidade dos dados e critérios de aceite reais.
+- O parâmetro `resultado_anterior` é essencial para manter a continuidade entre os elos.
