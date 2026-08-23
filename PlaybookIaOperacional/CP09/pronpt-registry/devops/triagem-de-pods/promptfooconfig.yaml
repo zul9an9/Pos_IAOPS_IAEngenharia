@@ -1,0 +1,108 @@
+# Testes determinísticos da triagem de pods (origem: CP01).
+# Rodar da pasta do prompt: `promptfoo eval`
+#
+# Providers: gpt-4o-mini + claude-haiku-4.5 — raciocínio de leitura de log
+# sobre texto curto; modelos rápidos/baratos cabem nos limites de latência e custo.
+description: "triagem-de-pods — causa e ação por pod, com caso saudável explícito"
+
+prompts:
+  - file://prompt.md
+
+providers:
+  - openai:gpt-4o-mini
+  - anthropic:messages:claude-haiku-4-5-20251001
+
+# Limites operacionais valem para todos os casos; os asserts de conteúdo
+# variam por entrada e ficam em cada teste.
+defaultTest:
+  assert:
+    - type: latency
+      threshold: 5000
+    - type: cost
+      threshold: 0.01
+
+tests:
+  - description: "Entrada 1 — pod reiniciando (OOMKilled)"
+    vars:
+      snapshot: |
+        $ kubectl get pods -n sentinel-prod
+        NAME                             READY   STATUS             RESTARTS       AGE
+        sentinel-api-7d9c8b6f4-h4m2t     0/1     CrashLoopBackOff   5 (30s ago)    22m
+        sentinel-worker-6c4b9f7d-2xk9    1/1     Running            0              6d
+
+        $ kubectl describe pod sentinel-api-7d9c8b6f4-h4m2t -n sentinel-prod
+        Containers:
+          sentinel-api:
+            State:          Waiting
+              Reason:       CrashLoopBackOff
+            Last State:     Terminated
+              Reason:       OOMKilled
+              Exit Code:    137
+            Limits:
+              memory:  512Mi
+        Events:
+          Warning  BackOff  1m (x5)  kubelet  Back-off restarting failed container
+
+        $ kubectl logs sentinel-api-7d9c8b6f4-h4m2t -n sentinel-prod --previous
+        INFO  loading alert cache into memory
+        WARN  heap usage 410Mi
+        WARN  heap usage 470Mi high GC pressure
+        WARN  heap usage 498Mi high GC pressure
+        FATAL out of memory, shutting down process
+    assert:
+      - type: contains
+        value: "sentinel-api-7d9c8b6f4-h4m2t"
+      - type: contains-any
+        value: ["OOMKilled", "memória", "memory"]
+
+  - description: "Entrada 2 — dois pods problemáticos (imagem inexistente + sem CPU)"
+    vars:
+      snapshot: |
+        $ kubectl get pods -n sentinel-prod
+        NAME                             READY   STATUS             RESTARTS   AGE
+        sentinel-api-7d9c8b6f4-zzp10     0/1     ImagePullBackOff   0          4m
+        sentinel-api-7d9c8b6f4-abc12     1/1     Running            0          3d
+        sentinel-ingest-8f7a9c5b-4dkqm   0/1     Pending            0          4m
+
+        $ kubectl describe pod sentinel-api-7d9c8b6f4-zzp10 -n sentinel-prod
+        Events:
+          Warning  Failed  2m  kubelet  Failed to pull image "registry.aegis/sentinel-api:2.9.2": manifest unknown
+          Warning  Failed  2m  kubelet  Error: ImagePullBackOff
+
+        $ kubectl describe pod sentinel-ingest-8f7a9c5b-4dkqm -n sentinel-prod
+        Containers:
+          ingest:
+            Requests:
+              cpu: 2
+        Events:
+          Warning  FailedScheduling  3m  default-scheduler  0/6 nodes are available: 6 Insufficient cpu
+    assert:
+      - type: contains
+        value: "sentinel-api-7d9c8b6f4-zzp10"
+      - type: contains
+        value: "sentinel-ingest-8f7a9c5b-4dkqm"
+      - type: contains-any
+        value: ["2.9.2", "ImagePullBackOff"]
+      - type: contains-any
+        value: ["Insufficient", "Insufficient cpu", "falta de cpu", "falta de recurso"]
+
+  - description: "Entrada 3 — tudo saudável (não pode classificar pod como em falha)"
+    vars:
+      snapshot: |
+        $ kubectl get pods -n sentinel-prod
+        NAME                             READY   STATUS    RESTARTS      AGE
+        sentinel-api-7d9c8b6f4-abc12     1/1     Running   0             3d
+        sentinel-worker-6c4b9f7d-2xk9    1/1     Running   1 (3d ago)    9d
+        sentinel-ingest-8f7a9c5b-9pol2   1/1     Running   0             3d
+
+        $ kubectl get events -n sentinel-prod --field-selector type=Warning
+        No resources found in sentinel-prod namespace.
+    assert:
+      - type: contains-any
+        value: ["saudá", "saudavel", "healthy", "nenhum pod", "Nenhuma ação"]
+      - type: not-contains
+        value: "Causa provável"
+      - type: not-contains
+        value: "OOMKilled"
+      - type: not-contains
+        value: "ImagePullBackOff"
