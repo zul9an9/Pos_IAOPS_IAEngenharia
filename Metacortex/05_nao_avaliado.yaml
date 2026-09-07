@@ -1,0 +1,55 @@
+# Fixture 05 — o caminho difícil. Exercita, de uma vez:
+#   - namespace fora do formato, o que torna o ambiente indeterminável e cascateia
+#     as regras condicionais de prod para "não-avaliado" em vez de aprovado;
+#   - uma exceção dentro da validade e outra vencida, na mesma anotação;
+#   - liveness e readiness no mesmo endpoint, que é a armadilha descrita na 2.2;
+#   - valores de alta entropia que NÃO são segredo, para medir falso positivo da 3.3.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nyx-ingestor
+  namespace: producao
+  labels:
+    app.kubernetes.io/name: nyx-ingestor
+    app.kubernetes.io/instance: nyx-producao
+    app.kubernetes.io/part-of: nyx
+    app.kubernetes.io/managed-by: helm
+  annotations:
+    metacortex.io/owner: squad-nyx
+    metacortex.io/exception: "3.2:2027-03-01,3.7:2026-01-15"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: nyx-ingestor
+      app.kubernetes.io/instance: nyx-producao
+      app.kubernetes.io/part-of: nyx
+      app.kubernetes.io/managed-by: helm
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: nyx-ingestor
+        app.kubernetes.io/instance: nyx-producao
+        app.kubernetes.io/part-of: nyx
+        app.kubernetes.io/managed-by: helm
+    spec:
+      serviceAccountName: nyx-ingestor
+      automountServiceAccountToken: true
+      terminationGracePeriodSeconds: 120
+      containers:
+        - name: ingestor
+          image: ghcr.io/metacortex/nyx-ingestor:4.1.0
+          resources:
+            requests: {cpu: 500m, memory: 1Gi}
+            limits:   {cpu: 2, memory: 8Gi}
+          readinessProbe:
+            httpGet: {path: /health, port: 8080}
+          livenessProbe:
+            httpGet: {path: /health, port: 8080}
+          env:
+            - name: TRACE_SAMPLE_KEY
+              value: "aGVsbG8td29ybGQtbmFvLWVoLXNlZ3JlZG8="
+            - name: PARTITION_SEED
+              value: "7f3a9c2e5b8d1046"
+            - name: KAFKA_BOOTSTRAP
+              value: "kafka-0.kafka.nyx-producao.svc:9092"
