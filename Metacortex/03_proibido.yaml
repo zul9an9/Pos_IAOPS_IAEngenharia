@@ -1,0 +1,80 @@
+# Fixture 03 — violações de severidade "proibido", isoladas.
+# As regras obrigatórias estão satisfeitas de propósito, para que a saída não misture severidades.
+# A anotação de exceção tem data válida, mas aponta para regra proibida: não pode suprimir nada.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helio-gateway
+  namespace: helio-prod
+  labels:
+    app.kubernetes.io/name: helio-gateway
+    app.kubernetes.io/instance: helio-prod
+    app.kubernetes.io/part-of: helio
+    app.kubernetes.io/managed-by: argocd
+  annotations:
+    metacortex.io/owner: squad-helio
+    metacortex.io/exception: "3.6:2027-01-31"
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: helio-gateway
+      app.kubernetes.io/instance: helio-prod
+      app.kubernetes.io/part-of: helio
+      app.kubernetes.io/managed-by: argocd
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: helio-gateway
+        app.kubernetes.io/instance: helio-prod
+        app.kubernetes.io/part-of: helio
+        app.kubernetes.io/managed-by: argocd
+    spec:
+      serviceAccountName: helio-gateway
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      hostNetwork: true
+      hostPID: true
+      containers:
+        - name: gateway
+          image: registry.metacortex.io/helio/gateway:latest
+          env:
+            - name: DATABASE_URL
+              value: "postgres://helio:t3mp0-de-tr0v0@pg.helio-prod.svc:5432/helio"
+            - name: ADMIN_TOKEN
+              value: "hlx_live_8f2b91c4e7a05d3f6b8c1e94"
+          resources:
+            requests: {cpu: 200m, memory: 256Mi}
+            limits:   {cpu: 800m, memory: 512Mi}
+          readinessProbe:
+            httpGet: {path: /readyz, port: 8080}
+          livenessProbe:
+            httpGet: {path: /healthz, port: 8080}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            privileged: true
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: helio-gateway-config
+  namespace: helio-prod
+  labels:
+    app.kubernetes.io/name: helio-gateway
+    app.kubernetes.io/instance: helio-prod
+    app.kubernetes.io/part-of: helio
+    app.kubernetes.io/managed-by: argocd
+data:
+  LOG_LEVEL: info
+  UPSTREAM_TIMEOUT: "30s"
+  SMTP_PASSWORD: "n3ur0-l1nk-2026"
