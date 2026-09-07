@@ -1,0 +1,39 @@
+# Fixture 02 — apenas violações de severidade "obrigatório".
+# Namespace deliberadamente válido, para que as regras condicionais de prod sejam avaliáveis.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: OrionWorker
+  namespace: orion-prod
+  labels:
+    app: orion-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orion-worker
+  template:
+    metadata:
+      labels:
+        app: orionworker
+    spec:
+      containers:
+        - name: worker
+          image: docker.io/library/nginx:1.27.3
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orion-worker
+  namespace: orion-prod
+  labels:
+    app: orion-worker
+spec:
+  type: ClusterIP
+  selector:
+    app: orion-worker
+  ports:
+    - port: 80
+      targetPort: 8080
