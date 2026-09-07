@@ -1,0 +1,128 @@
+# Fixture 01 — linha de base conforme. Nenhuma violação esperada.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: nyx-api
+  namespace: nyx-prod
+  labels:
+    app.kubernetes.io/name: nyx-api
+    app.kubernetes.io/instance: nyx-prod
+    app.kubernetes.io/part-of: nyx
+    app.kubernetes.io/managed-by: platform
+  annotations:
+    metacortex.io/owner: squad-nyx
+    metacortex.io/runbook: https://wiki.metacortex.io/runbooks/nyx-api
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nyx-api
+  namespace: nyx-prod
+  labels:
+    app.kubernetes.io/name: nyx-api
+    app.kubernetes.io/instance: nyx-prod
+    app.kubernetes.io/part-of: nyx
+    app.kubernetes.io/managed-by: platform
+  annotations:
+    metacortex.io/owner: squad-nyx
+    metacortex.io/runbook: https://wiki.metacortex.io/runbooks/nyx-api
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: nyx-api
+      app.kubernetes.io/instance: nyx-prod
+      app.kubernetes.io/part-of: nyx
+      app.kubernetes.io/managed-by: platform
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: nyx-api
+        app.kubernetes.io/instance: nyx-prod
+        app.kubernetes.io/part-of: nyx
+        app.kubernetes.io/managed-by: platform
+    spec:
+      serviceAccountName: nyx-api
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 45
+      containers:
+        - name: api
+          image: registry.metacortex.io/nyx/api:2.9.1
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: nyx-db
+                  key: url
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits:   {cpu: 500m, memory: 512Mi}
+          readinessProbe:
+            httpGet: {path: /readyz, port: 8080}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: {path: /healthz, port: 8080}
+            initialDelaySeconds: 20
+            periodSeconds: 15
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nyx-api
+  namespace: nyx-prod
+  labels:
+    app.kubernetes.io/name: nyx-api
+    app.kubernetes.io/instance: nyx-prod
+    app.kubernetes.io/part-of: nyx
+    app.kubernetes.io/managed-by: platform
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: nyx-api
+    app.kubernetes.io/instance: nyx-prod
+    app.kubernetes.io/part-of: nyx
+    app.kubernetes.io/managed-by: platform
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: nyx-api-pdb
+  namespace: nyx-prod
+  labels:
+    app.kubernetes.io/name: nyx-api
+    app.kubernetes.io/instance: nyx-prod
+    app.kubernetes.io/part-of: nyx
+    app.kubernetes.io/managed-by: platform
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: nyx-api
+      app.kubernetes.io/instance: nyx-prod
+      app.kubernetes.io/part-of: nyx
+      app.kubernetes.io/managed-by: platform
