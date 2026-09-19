@@ -1,0 +1,324 @@
+{
+  "achados": [
+    {
+      "regra": "3.3",
+      "severidade": "proibido",
+      "veredito": "falha",
+      "recurso": "nyx-api.yaml:25",
+      "detalhe": "URL com usuário:senha em texto (valor)",
+      "origem": "script",
+      "arquivo": "manifest-barrado/nyx-api.yaml"
+    },
+    {
+      "regra": "1.1",
+      "severidade": "obrigatório",
+      "veredito": "falha",
+      "recurso": "Deployment/NyxAPI",
+      "detalhe": "'NyxAPI' não é kebab-case minúsculo (sem camelCase, underscore ou ponto)",
+      "origem": "script",
+      "arquivo": "manifest-barrado/nyx-api.yaml"
+    },
+    {
+      "regra": "1.3",
+      "severidade": "obrigatório",
+      "veredito": "falha",
+      "recurso": "Deployment/NyxAPI",
+      "detalhe": "rótulos ausentes: app.kubernetes.io/name, app.kubernetes.io/instance, app.kubernetes.io/part-of, app.kubernetes.io/managed-by (o rótulo curto 'app' não substitui os quatro)",
+      "origem": "script",
+      "arquivo": "manifest-barrado/nyx-api.yaml"
+    },
+    {
+      "regra": "1.3",
+      "severidade": "obrigatório",
+      "veredito": "falha",
+      "recurso": "Service/nyx-api",
+      "detalhe": "rótulos ausentes: app.kubernetes.io/name, app.kubernetes.io/instance, app.kubernetes.io/part-of, app.kubernetes.io/managed-by",
+      "origem": "script",
+      "arquivo": "manifest-barrado/nyx-api.yaml"
+    },
+    {
+      "regra": "1.3",
+      "severidade": "obrigatório",
+      "veredito": "falha",
+      "recurso": "Deployment/NyxAPI",
+      "detalhe": "rótulos ausentes (template do pod): app.kubernetes.io/name, app.kubernetes.io/instance, app.kubernetes.io/part-of, app.kubernetes.io/managed-by (o rótulo curto 'app' não substitui os quatro)",
+      "origem": "script",
+      "arquivo": "manifest-barrado/nyx-api.yaml"
+    },
+    {
+      "regra": "1.5",
+      "severidade": "recomendado",
+      "veredito": "aviso",
+      "recurso": "Deployment/NyxAPI",
+      "detalhe": "sem metacortex.io/owner (justificar no PR)",
+      "origem": "script",
+      "arquivo": "manifest-barrado/nyx-api.yaml"
+    },
+    {
+      "regra": "2.2",
+      "severidade": "obrigatório",
+      "veredito": "falha",
+      "recurso": "Deployment/NyxAPI:api",
+      "detalhe": "sem readinessProbe",
+      "origem": "script",
+      "arquivo": "manifest-barrado/nyx-api.yaml"
+    },
+    {
+      "regra": "2.2",
+      "severidade": "obrigatório",
+      "veredito": "falha",
+      "recurso": "Deployment/NyxAPI:api",
+      "detalhe": "sem livenessProbe",
+      "origem": "script",
+      "arquivo": "manifest-barrado/nyx-api.yaml"
+    },
+    {
+      "regra": "2.2",
+      "severidade": "obrigatório",
+      "veredito": "revisar",
+      "recurso": "Deployment/NyxAPI:api",
+      "detalhe": "confirmar no código que os destinos existem; readiness e liveness NÃO podem ser o mesmo endpoint que checa banco. Nenhuma probe declarada — descobrir endpoints no projeto.",
+      "origem": "script",
+      "arquivo": "manifest-barrado/nyx-api.yaml"
+    },
+    {
+      "regra": "2.3",
+      "severidade": "obrigatório",
+      "veredito": "falha",
+      "recurso": "Deployment/NyxAPI",
+      "detalhe": "replicas=1 em prod (exceção só com aprovação escrita de S&C no PR, com prazo)",
+      "origem": "script",
+      "arquivo": "manifest-barrado/nyx-api.yaml"
+    },
+    {
+      "regra": "2.4",
+      "severidade": "obrigatório",
+      "veredito": "falha",
+      "recurso": "Deployment/NyxAPI",
+      "detalhe": "strategy (padrão do Kubernetes: 25%/25%) — prod exige RollingUpdate maxUnavailable: 0, maxSurge: 1",
+      "origem": "script",
+      "arquivo": "manifest-barrado/nyx-api.yaml"
+    },
+    {
+      "regra": "3.4",
+      "severidade": "obrigatório",
+      "veredito": "falha",
+      "recurso": "Deployment/NyxAPI",
+      "detalhe": "automountServiceAccountToken não é false (no pod nem na ServiceAccount do conjunto)",
+      "origem": "script",
+      "arquivo": "manifest-barrado/nyx-api.yaml"
+    },
+    {
+      "regra": "3.5",
+      "severidade": "recomendado",
+      "veredito": "aviso",
+      "recurso": "Deployment/NyxAPI",
+      "detalhe": "usa a ServiceAccount default do namespace",
+      "origem": "script",
+      "arquivo": "manifest-barrado/nyx-api.yaml"
+    },
+    {
+      "regra": "3.3",
+      "severidade": "proibido",
+      "veredito": "revisar",
+      "recurso": "Deployment/NyxAPI",
+      "detalhe": "confrontar as variáveis entregues ['DATABASE_URL'] com as que o código lê, e decidir quais são sensíveis",
+      "origem": "script",
+      "arquivo": "manifest-barrado/nyx-api.yaml"
+    },
+    {
+      "regra": "3.2",
+      "severidade": "obrigatório",
+      "veredito": "revisar",
+      "recurso": "Deployment/NyxAPI",
+      "detalhe": "com readOnlyRootFilesystem, confirmar no projeto onde a aplicação escreve e montar emptyDir",
+      "origem": "script",
+      "arquivo": "manifest-barrado/nyx-api.yaml"
+    },
+    {
+      "regra": "2.1",
+      "severidade": "obrigatório",
+      "veredito": "revisar",
+      "recurso": "Deployment/NyxAPI",
+      "detalhe": "limits de memória devem ficar entre 1,5x e 2x o consumo observado em regime — conferir contra métrica real",
+      "origem": "script",
+      "arquivo": "manifest-barrado/nyx-api.yaml"
+    },
+    {
+      "regra": "2.6",
+      "severidade": "recomendado",
+      "veredito": "revisar",
+      "recurso": "Deployment/NyxAPI",
+      "detalhe": "terminationGracePeriodSeconds=30 (padrão): a aplicação trata SIGTERM e drena nesse tempo?",
+      "origem": "script",
+      "arquivo": "manifest-barrado/nyx-api.yaml"
+    },
+    {
+      "regra": "3.4",
+      "severidade": "obrigatório",
+      "veredito": "revisar",
+      "recurso": "Deployment/NyxAPI",
+      "detalhe": "confirmar no código que a aplicação não fala com o apiserver",
+      "origem": "script",
+      "arquivo": "manifest-barrado/nyx-api.yaml"
+    },
+    {
+      "regra": "1.4",
+      "severidade": "obrigatório",
+      "veredito": "falha",
+      "recurso": "Service/nyx-api",
+      "detalhe": "selector {'app': 'nyx-api'} não casa com nenhum pod do conjunto — o Service fica sem endpoint",
+      "origem": "script",
+      "arquivo": "manifest-barrado/nyx-api.yaml"
+    },
+    {
+      "regra": "3.2",
+      "severidade": "obrigatório",
+      "veredito": "falha",
+      "recurso": "nyx-api.yaml",
+      "detalhe": "KSV-0001 (MEDIUM): Container 'api' of Deployment 'NyxAPI' should set 'securityContext.allowPrivilegeEscalation' to false",
+      "origem": "trivy",
+      "arquivo": "nyx-api.yaml"
+    },
+    {
+      "regra": "3.2",
+      "severidade": "obrigatório",
+      "veredito": "falha",
+      "recurso": "nyx-api.yaml",
+      "detalhe": "KSV-0003 (LOW): Container 'api' of Deployment 'NyxAPI' should add 'ALL' to 'securityContext.capabilities.drop'",
+      "origem": "trivy",
+      "arquivo": "nyx-api.yaml"
+    },
+    {
+      "regra": "3.2",
+      "severidade": "obrigatório",
+      "veredito": "falha",
+      "recurso": "nyx-api.yaml",
+      "detalhe": "KSV-0004 (LOW): Container 'api' of 'deployment' 'NyxAPI' in 'nyx-prod' namespace should set securityContext.capabilities.drop",
+      "origem": "trivy",
+      "arquivo": "nyx-api.yaml"
+    },
+    {
+      "regra": "2.1",
+      "severidade": "obrigatório",
+      "veredito": "falha",
+      "recurso": "nyx-api.yaml",
+      "detalhe": "KSV-0011 (LOW): Container 'api' of Deployment 'NyxAPI' should set 'resources.limits.cpu'",
+      "origem": "trivy",
+      "arquivo": "nyx-api.yaml"
+    },
+    {
+      "regra": "3.2",
+      "severidade": "obrigatório",
+      "veredito": "falha",
+      "recurso": "nyx-api.yaml",
+      "detalhe": "KSV-0012 (MEDIUM): Container 'api' of Deployment 'NyxAPI' should set 'securityContext.runAsNonRoot' to true",
+      "origem": "trivy",
+      "arquivo": "nyx-api.yaml"
+    },
+    {
+      "regra": "3.1",
+      "severidade": "proibido",
+      "veredito": "falha",
+      "recurso": "nyx-api.yaml",
+      "detalhe": "KSV-0013 (MEDIUM): Container 'api' of Deployment 'NyxAPI' should specify an image tag",
+      "origem": "trivy",
+      "arquivo": "nyx-api.yaml"
+    },
+    {
+      "regra": "3.2",
+      "severidade": "obrigatório",
+      "veredito": "falha",
+      "recurso": "nyx-api.yaml",
+      "detalhe": "KSV-0014 (HIGH): Container 'api' of Deployment 'NyxAPI' should set 'securityContext.readOnlyRootFilesystem' to true",
+      "origem": "trivy",
+      "arquivo": "nyx-api.yaml"
+    },
+    {
+      "regra": "2.1",
+      "severidade": "obrigatório",
+      "veredito": "falha",
+      "recurso": "nyx-api.yaml",
+      "detalhe": "KSV-0015 (LOW): Container 'api' of Deployment 'NyxAPI' should set 'resources.requests.cpu'",
+      "origem": "trivy",
+      "arquivo": "nyx-api.yaml"
+    },
+    {
+      "regra": "2.1",
+      "severidade": "obrigatório",
+      "veredito": "falha",
+      "recurso": "nyx-api.yaml",
+      "detalhe": "KSV-0016 (LOW): Container 'api' of Deployment 'NyxAPI' should set 'resources.requests.memory'",
+      "origem": "trivy",
+      "arquivo": "nyx-api.yaml"
+    },
+    {
+      "regra": "2.1",
+      "severidade": "obrigatório",
+      "veredito": "falha",
+      "recurso": "nyx-api.yaml",
+      "detalhe": "KSV-0018 (LOW): Container 'api' of Deployment 'NyxAPI' should set 'resources.limits.memory'",
+      "origem": "trivy",
+      "arquivo": "nyx-api.yaml"
+    },
+    {
+      "regra": "3.2",
+      "severidade": "obrigatório",
+      "veredito": "falha",
+      "recurso": "nyx-api.yaml",
+      "detalhe": "KSV-0020 (LOW): Container 'api' of Deployment 'NyxAPI' should set 'securityContext.runAsUser' > 10000",
+      "origem": "trivy",
+      "arquivo": "nyx-api.yaml"
+    },
+    {
+      "regra": "3.2",
+      "severidade": "obrigatório",
+      "veredito": "falha",
+      "recurso": "nyx-api.yaml",
+      "detalhe": "KSV-0106 (LOW): container should drop all",
+      "origem": "trivy",
+      "arquivo": "nyx-api.yaml"
+    },
+    {
+      "regra": "3.2",
+      "severidade": "obrigatório",
+      "veredito": "falha",
+      "recurso": "nyx-api.yaml",
+      "detalhe": "KSV-0118 (HIGH): container NyxAPI in nyx-prod namespace is using the default security context",
+      "origem": "trivy",
+      "arquivo": "nyx-api.yaml"
+    },
+    {
+      "regra": "3.2",
+      "severidade": "obrigatório",
+      "veredito": "falha",
+      "recurso": "nyx-api.yaml",
+      "detalhe": "KSV-0118 (HIGH): deployment NyxAPI in nyx-prod namespace is using the default security context, which allows root privileges",
+      "origem": "trivy",
+      "arquivo": "nyx-api.yaml"
+    }
+  ],
+  "trivy_fora_do_padrao": [
+    {
+      "id": "KSV-0021",
+      "sev": "LOW",
+      "titulo": "Runs with GID <= 10000",
+      "msg": "Container 'api' of Deployment 'NyxAPI' should set 'securityContext.runAsGroup' > 10000",
+      "arquivo": "nyx-api.yaml"
+    },
+    {
+      "id": "KSV-0030",
+      "sev": "LOW",
+      "titulo": "Runtime/Default Seccomp profile not set",
+      "msg": "Either Pod or Container should set 'securityContext.seccompProfile.type' to 'RuntimeDefault'",
+      "arquivo": "nyx-api.yaml"
+    },
+    {
+      "id": "KSV-0104",
+      "sev": "MEDIUM",
+      "titulo": "Seccomp policies disabled",
+      "msg": "container \"api\" of deployment \"NyxAPI\" in \"nyx-prod\" namespace should specify a seccomp profile",
+      "arquivo": "nyx-api.yaml"
+    }
+  ]
+}
