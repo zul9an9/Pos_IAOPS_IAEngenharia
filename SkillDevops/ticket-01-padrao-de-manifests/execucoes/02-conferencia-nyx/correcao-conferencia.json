@@ -1,0 +1,59 @@
+{
+  "achados": [
+    {
+      "regra": "2.2",
+      "severidade": "obrigatório",
+      "veredito": "revisar",
+      "recurso": "Deployment/nyx-api:api",
+      "detalhe": "confirmar no código que os destinos existem; readiness e liveness NÃO podem ser o mesmo endpoint que checa banco. {\"readinessProbe\": \"http /ready:http\", \"livenessProbe\": \"http /health:http\"}",
+      "origem": "script",
+      "arquivo": "correcao-proposta/nyx-api.yaml"
+    },
+    {
+      "regra": "3.3",
+      "severidade": "proibido",
+      "veredito": "revisar",
+      "recurso": "Deployment/nyx-api",
+      "detalhe": "confrontar as variáveis entregues ['DB_DATABASE', 'DB_HOST', 'DB_PASSWORD', 'DB_PORT', 'DB_USERNAME'] com as que o código lê, e decidir quais são sensíveis",
+      "origem": "script",
+      "arquivo": "correcao-proposta/nyx-api.yaml"
+    },
+    {
+      "regra": "3.2",
+      "severidade": "obrigatório",
+      "veredito": "revisar",
+      "recurso": "Deployment/nyx-api",
+      "detalhe": "com readOnlyRootFilesystem, confirmar no projeto onde a aplicação escreve e montar emptyDir",
+      "origem": "script",
+      "arquivo": "correcao-proposta/nyx-api.yaml"
+    },
+    {
+      "regra": "2.1",
+      "severidade": "obrigatório",
+      "veredito": "revisar",
+      "recurso": "Deployment/nyx-api",
+      "detalhe": "limits de memória devem ficar entre 1,5x e 2x o consumo observado em regime — conferir contra métrica real",
+      "origem": "script",
+      "arquivo": "correcao-proposta/nyx-api.yaml"
+    },
+    {
+      "regra": "2.6",
+      "severidade": "recomendado",
+      "veredito": "revisar",
+      "recurso": "Deployment/nyx-api",
+      "detalhe": "terminationGracePeriodSeconds=30 (padrão): a aplicação trata SIGTERM e drena nesse tempo?",
+      "origem": "script",
+      "arquivo": "correcao-proposta/nyx-api.yaml"
+    },
+    {
+      "regra": "3.4",
+      "severidade": "obrigatório",
+      "veredito": "revisar",
+      "recurso": "Deployment/nyx-api",
+      "detalhe": "confirmar no código que a aplicação não fala com o apiserver",
+      "origem": "script",
+      "arquivo": "correcao-proposta/nyx-api.yaml"
+    }
+  ],
+  "trivy_fora_do_padrao": []
+}
