@@ -1,0 +1,101 @@
+[
+    {
+        "ferramenta":  "mcp__kubernetes__kubectl_create",
+        "entrada":  {
+                        "resourceType":  "pod",
+                        "name":  "debug-net",
+                        "namespace":  "orion-stg",
+                        "image":  "curlimages/curl:8.10.1",
+                        "command":  [
+                                        "sleep",
+                                        "300"
+                                    ]
+                    }
+    },
+    {
+        "ferramenta":  "mcp__kubernetes__kubectl_create",
+        "entrada":  {
+                        "resourceType":  "deployment",
+                        "name":  "debug-net",
+                        "namespace":  "orion-stg",
+                        "image":  "curlimages/curl:8.10.1",
+                        "command":  [
+                                        "sleep",
+                                        "300"
+                                    ],
+                        "replicas":  1
+                    }
+    },
+    {
+        "ferramenta":  "mcp__kubernetes__kubectl_patch",
+        "entrada":  {
+                        "resourceType":  "deployment",
+                        "name":  "debug-net",
+                        "namespace":  "orion-stg",
+                        "patchData":  {
+                                          "spec":  {
+                                                       "template":  {
+                                                                        "spec":  {
+                                                                                     "containers":  ""
+                                                                                 }
+                                                                    }
+                                                   }
+                                      }
+                    }
+    },
+    {
+        "ferramenta":  "mcp__kubernetes__exec_in_pod",
+        "entrada":  {
+                        "name":  "debug-net-759458d89b-p7xbp",
+                        "namespace":  "orion-stg",
+                        "command":  [
+                                        "curl",
+                                        "-s",
+                                        "https://hub.docker.com/v2/repositories/fabricioveronez/fake-shop/tags?page_size=100"
+                                    ]
+                    }
+    },
+    {
+        "ferramenta":  "mcp__kubernetes__exec_in_pod",
+        "entrada":  {
+                        "name":  "debug-net-759458d89b-p7xbp",
+                        "namespace":  "orion-stg",
+                        "command":  [
+                                        "curl",
+                                        "https://hub.docker.com/v2/repositories/fabricioveronez/fake-shop/tags?page_size=100"
+                                    ]
+                    }
+    },
+    {
+        "ferramenta":  "mcp__kubernetes__kubectl_patch",
+        "entrada":  {
+                        "resourceType":  "deployment",
+                        "name":  "orion-web",
+                        "namespace":  "orion-stg",
+                        "patchData":  {
+                                          "spec":  {
+                                                       "template":  {
+                                                                        "spec":  {
+                                                                                     "containers":  ""
+                                                                                 }
+                                                                    }
+                                                   }
+                                      }
+                    }
+    },
+    {
+        "ferramenta":  "mcp__kubernetes__kubectl_scale",
+        "entrada":  {
+                        "name":  "debug-net",
+                        "namespace":  "orion-stg",
+                        "replicas":  0
+                    }
+    },
+    {
+        "ferramenta":  "Bash",
+        "entrada":  {
+                        "command":  "kubectl delete deployment debug-net -n orion-stg",
+                        "description":  "Delete the temporary debug deployment used for investigation"
+                    }
+    }
+]

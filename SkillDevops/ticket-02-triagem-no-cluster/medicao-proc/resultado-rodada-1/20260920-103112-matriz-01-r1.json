@@ -1,0 +1,94 @@
+{
+  "skills": [
+    "metacortex-triagem"
+  ],
+  "skills_disponiveis": {
+    "skills": [
+      "metacortex-manifests",
+      "metacortex-triagem",
+      "design",
+      "design-sync",
+      "dataviz",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "schedule",
+      "claude-api",
+      "run",
+      "run-skill-generator"
+    ],
+    "mcp_servers": [
+      {
+        "name": "kubernetes",
+        "status": "pending"
+      },
+      {
+        "name": "claude.ai Claude Docs",
+        "status": "connected"
+      },
+      {
+        "name": "claude.ai Google Drive",
+        "status": "connected"
+      }
+    ],
+    "model": "claude-sonnet-5"
+  },
+  "ferramentas": [
+    {
+      "nome": "Skill",
+      "entrada": {
+        "skill": "metacortex-triagem",
+        "args": "namespace nyx-prod: pod não sobe"
+      }
+    },
+    {
+      "nome": "ToolSearch",
+      "entrada": {
+        "query": "kubectl_get kubernetes pods",
+        "max_results": 10
+      }
+    },
+    {
+      "nome": "ToolSearch",
+      "entrada": {
+        "query": "kubectl_get kubernetes pods",
+        "max_results": 10
+      }
+    },
+    {
+      "nome": "ToolSearch",
+      "entrada": {
+        "query": "select:kubectl_get",
+        "max_results": 10
+      }
+    }
+  ],
+  "sequencia": [
+    "Skill",
+    "ToolSearch",
+    "ToolSearch",
+    "ToolSearch"
+  ],
+  "tentativas_escrita": [],
+  "recusas_permissao": [],
+  "custo_usd": 0.048246000000000004,
+  "duracao_ms": 22104,
+  "duracao_api_ms": 7917,
+  "turnos": 5,
+  "tokens_entrada": 142437,
+  "tokens_saida": 549,
+  "fim": "error_max_turns",
+  "resposta_final": "",
+  "rotulo": "matriz-01-r1",
+  "lab": "lab-com-skills",
+  "prompt": "o pod do nyx-prod não sobe",
+  "tempo_parede_ms": 27096,
+  "rc": 1,
+  "stderr": ""
+}

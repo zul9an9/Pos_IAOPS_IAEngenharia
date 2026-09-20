@@ -1,0 +1,90 @@
+{
+  "skills": [],
+  "skills_disponiveis": {
+    "skills": [
+      "metacortex-manifests",
+      "metacortex-triagem",
+      "design",
+      "design-sync",
+      "dataviz",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "schedule",
+      "claude-api",
+      "run",
+      "run-skill-generator"
+    ],
+    "mcp_servers": [
+      {
+        "name": "kubernetes",
+        "status": "connected"
+      },
+      {
+        "name": "claude.ai Claude Docs",
+        "status": "connected"
+      },
+      {
+        "name": "claude.ai Google Drive",
+        "status": "connected"
+      }
+    ],
+    "model": "claude-sonnet-5"
+  },
+  "ferramentas": [
+    {
+      "nome": "Bash",
+      "entrada": {
+        "command": "find . -maxdepth 4 \\( -iname \"*.yaml\" -o -iname \"*.yml\" \\) 2>/dev/null",
+        "description": "List YAML manifest files in working directory"
+      }
+    },
+    {
+      "nome": "Glob",
+      "entrada": {
+        "pattern": "**/*.{yaml,yml}"
+      }
+    },
+    {
+      "nome": "Bash",
+      "entrada": {
+        "command": "find . -maxdepth 3 -type f 2>/dev/null | grep -v node_modules",
+        "description": "List all files up to 3 levels deep"
+      }
+    },
+    {
+      "nome": "Glob",
+      "entrada": {
+        "pattern": "**/*"
+      }
+    }
+  ],
+  "sequencia": [
+    "Bash",
+    "Glob",
+    "Bash",
+    "Glob"
+  ],
+  "tentativas_escrita": [],
+  "recusas_permissao": [],
+  "custo_usd": 0.059261799999999996,
+  "duracao_ms": 9924,
+  "duracao_api_ms": 9170,
+  "turnos": 5,
+  "tokens_entrada": 135211,
+  "tokens_saida": 607,
+  "fim": "error_max_turns",
+  "resposta_final": "",
+  "rotulo": "matriz-05-r1",
+  "lab": "lab-com-skills",
+  "prompt": "esse manifesto está no padrão da casa?",
+  "tempo_parede_ms": 13407,
+  "rc": 1,
+  "stderr": ""
+}

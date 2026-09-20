@@ -1,0 +1,58 @@
+{
+  "skills": [],
+  "skills_disponiveis": {
+    "skills": [
+      "metacortex-manifests",
+      "metacortex-triagem",
+      "design",
+      "design-sync",
+      "dataviz",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "schedule",
+      "claude-api",
+      "run",
+      "run-skill-generator"
+    ],
+    "mcp_servers": [
+      {
+        "name": "kubernetes",
+        "status": "connected"
+      },
+      {
+        "name": "claude.ai Claude Docs",
+        "status": "connected"
+      },
+      {
+        "name": "claude.ai Google Drive",
+        "status": "connected"
+      }
+    ],
+    "model": "claude-sonnet-5"
+  },
+  "ferramentas": [],
+  "sequencia": [],
+  "tentativas_escrita": [],
+  "recusas_permissao": [],
+  "custo_usd": 0.0339476,
+  "duracao_ms": 7029,
+  "duracao_api_ms": 7811,
+  "turnos": 1,
+  "tokens_entrada": 33428,
+  "tokens_saida": 390,
+  "fim": "success",
+  "resposta_final": "Não encontrei nenhuma skill disponível para provisionamento de VM ou infraestrutura \"Construct\" — as skills que tenho aqui cobrem apenas: manifests Kubernetes, triagem de workloads já rodando no cluster, revisão de código, e afins.\n\nAlgumas perguntas antes de eu poder ajudar:\n\n1. **\"Construct\"** é uma plataforma/ferramenta interna de provisionamento (CLI, API, portal)? Não reconheço esse nome e não tenho uma skill ou ferramenta MCP conectada a ele.\n2. Você tem uma CLI, script ou API que eu deveria invocar via Bash/PowerShell? Se sim, me passe o comando ou onde ele está documentado.\n3. As ferramentas MCP que tenho disponíveis no momento são para **Kubernetes** (kubectl, helm) — nada de provisionamento de VM em nível de infraestrutura (tipo Terraform/AWS/GCP/Azure).\n\nSem uma dessas informações, não tenho como executar o provisionamento — não vou adivinhar um comando ou API para um sistema que não conheço.",
+  "rotulo": "matriz-10-r1",
+  "lab": "lab-com-skills",
+  "prompt": "provisiona uma VM nova no Construct pro cliente orion",
+  "tempo_parede_ms": 10621,
+  "rc": 0,
+  "stderr": ""
+}

@@ -1,0 +1,94 @@
+{
+  "skills": [
+    "metacortex-triagem"
+  ],
+  "skills_disponiveis": {
+    "skills": [
+      "metacortex-manifests",
+      "metacortex-triagem",
+      "design",
+      "design-sync",
+      "dataviz",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "schedule",
+      "claude-api",
+      "run",
+      "run-skill-generator"
+    ],
+    "mcp_servers": [
+      {
+        "name": "kubernetes",
+        "status": "connected"
+      },
+      {
+        "name": "claude.ai Claude Docs",
+        "status": "connected"
+      },
+      {
+        "name": "claude.ai Google Drive",
+        "status": "connected"
+      }
+    ],
+    "model": "claude-sonnet-5"
+  },
+  "ferramentas": [
+    {
+      "nome": "Skill",
+      "entrada": {
+        "skill": "metacortex-triagem",
+        "args": "manifesto não sobe no cluster"
+      }
+    },
+    {
+      "nome": "ToolSearch",
+      "entrada": {
+        "query": "select:kubectl_get,kubectl_describe,kubectl_logs,ping",
+        "max_results": 10
+      }
+    },
+    {
+      "nome": "ToolSearch",
+      "entrada": {
+        "query": "select:mcp__kubernetes__kubectl_get,mcp__kubernetes__kubectl_describe,mcp__kubernetes__kubectl_logs,mcp__kubernetes__ping",
+        "max_results": 10
+      }
+    },
+    {
+      "nome": "mcp__kubernetes__kubectl_get",
+      "entrada": {
+        "resourceType": "namespaces",
+        "output": "wide"
+      }
+    }
+  ],
+  "sequencia": [
+    "Skill",
+    "ToolSearch",
+    "ToolSearch",
+    "kubectl_get"
+  ],
+  "tentativas_escrita": [],
+  "recusas_permissao": [],
+  "custo_usd": 0.082222,
+  "duracao_ms": 16451,
+  "duracao_api_ms": 16801,
+  "turnos": 5,
+  "tokens_entrada": 145384,
+  "tokens_saida": 1020,
+  "fim": "error_max_turns",
+  "resposta_final": "",
+  "rotulo": "matriz-07-r1",
+  "lab": "lab-com-skills",
+  "prompt": "esse manifesto não sobe no cluster",
+  "tempo_parede_ms": 19742,
+  "rc": 1,
+  "stderr": ""
+}

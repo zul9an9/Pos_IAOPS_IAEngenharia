@@ -1,0 +1,94 @@
+{
+  "skills": [
+    "metacortex-triagem"
+  ],
+  "skills_disponiveis": {
+    "skills": [
+      "metacortex-manifests",
+      "metacortex-triagem",
+      "design",
+      "design-sync",
+      "dataviz",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "schedule",
+      "claude-api",
+      "run",
+      "run-skill-generator"
+    ],
+    "mcp_servers": [
+      {
+        "name": "kubernetes",
+        "status": "connected"
+      },
+      {
+        "name": "claude.ai Claude Docs",
+        "status": "connected"
+      },
+      {
+        "name": "claude.ai Google Drive",
+        "status": "connected"
+      }
+    ],
+    "model": "claude-sonnet-5"
+  },
+  "ferramentas": [
+    {
+      "nome": "Skill",
+      "entrada": {
+        "skill": "metacortex-triagem",
+        "args": "Service do nyx não está entregando tráfego"
+      }
+    },
+    {
+      "nome": "ToolSearch",
+      "entrada": {
+        "query": "select:kubectl_get,kubectl_describe,kubectl_logs",
+        "max_results": 5
+      }
+    },
+    {
+      "nome": "ToolSearch",
+      "entrada": {
+        "query": "select:mcp__kubernetes__kubectl_get,mcp__kubernetes__kubectl_describe,mcp__kubernetes__kubectl_logs",
+        "max_results": 5
+      }
+    },
+    {
+      "nome": "mcp__kubernetes__kubectl_get",
+      "entrada": {
+        "resourceType": "namespaces",
+        "output": "wide"
+      }
+    }
+  ],
+  "sequencia": [
+    "Skill",
+    "ToolSearch",
+    "ToolSearch",
+    "kubectl_get"
+  ],
+  "tentativas_escrita": [],
+  "recusas_permissao": [],
+  "custo_usd": 0.07634300000000001,
+  "duracao_ms": 8182,
+  "duracao_api_ms": 8849,
+  "turnos": 5,
+  "tokens_entrada": 144407,
+  "tokens_saida": 626,
+  "fim": "error_max_turns",
+  "resposta_final": "",
+  "rotulo": "matriz-08-r1",
+  "lab": "lab-com-skills",
+  "prompt": "o Service do nyx não está entregando tráfego",
+  "tempo_parede_ms": 11893,
+  "rc": 1,
+  "stderr": ""
+}

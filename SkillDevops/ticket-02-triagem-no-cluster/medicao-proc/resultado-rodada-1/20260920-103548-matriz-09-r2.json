@@ -1,0 +1,58 @@
+{
+  "skills": [],
+  "skills_disponiveis": {
+    "skills": [
+      "metacortex-manifests",
+      "metacortex-triagem",
+      "design",
+      "design-sync",
+      "dataviz",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "schedule",
+      "claude-api",
+      "run",
+      "run-skill-generator"
+    ],
+    "mcp_servers": [
+      {
+        "name": "kubernetes",
+        "status": "connected"
+      },
+      {
+        "name": "claude.ai Claude Docs",
+        "status": "connected"
+      },
+      {
+        "name": "claude.ai Google Drive",
+        "status": "connected"
+      }
+    ],
+    "model": "claude-sonnet-5"
+  },
+  "ferramentas": [],
+  "sequencia": [],
+  "tentativas_escrita": [],
+  "recusas_permissao": [],
+  "custo_usd": 0.014928199999999999,
+  "duracao_ms": 9011,
+  "duracao_api_ms": 17563,
+  "turnos": 1,
+  "tokens_entrada": 33418,
+  "tokens_saida": 728,
+  "fim": "success",
+  "resposta_final": "Um **DaemonSet** é um objeto do Kubernetes que garante que **uma cópia de um Pod rode em todos os nós (ou em um subconjunto de nós) do cluster**.\n\nPrincipais características:\n\n- **Escopo por nó, não por réplica**: diferente de um Deployment (que distribui N réplicas onde o scheduler achar melhor), o DaemonSet cria automaticamente exatamente 1 pod por nó elegível — sem precisar definir `replicas`.\n- **Escala automática com o cluster**: quando um novo nó entra no cluster, o pod do DaemonSet é criado nele automaticamente; quando o nó sai, o pod é removido junto.\n- **Uso típico**: agentes de infraestrutura que precisam existir em todo nó, como:\n  - coletores de logs (ex: Fluentd, Filebeat)\n  - agentes de monitoramento/métricas (ex: node-exporter, Datadog agent)\n  - plugins de rede/CNI ou de storage\n  - agentes de segurança/antivírus de nó\n- **Seleção de nós**: pode ser limitado a um subconjunto de nós usando `nodeSelector` ou `affinity` no spec do pod template.\n- **Tolerâncias comuns**: geralmente incluem `tolerations` para rodar até em nós com taints (como nós de control-plane), já que o objetivo costuma ser cobertura total do cluster.\n\nExemplo mínimo de manifesto:\n\n```yaml\napiVersion: apps/v1\nkind: DaemonSet\nmetadata:\n  name: node-log-collector\nspec:\n  selector:\n    matchLabels:\n      app: node-log-collector\n  template:\n    metadata:\n      labels:\n        app: node-log-collector\n    spec:\n      containers:\n        - name: log-collector\n          image: registry.internal/log-collector:1.4.0\n```\n\nSe você estiver revisando ou criando um manifesto DaemonSet real para o cluster da Metacortex, posso usar a skill `metacortex-manifests` para conferir se ele está de acordo com o padrão da casa (labels, securityContext, recursos etc.).",
+  "rotulo": "matriz-09-r2",
+  "lab": "lab-com-skills",
+  "prompt": "o que é um DaemonSet?",
+  "tempo_parede_ms": 12511,
+  "rc": 0,
+  "stderr": ""
+}

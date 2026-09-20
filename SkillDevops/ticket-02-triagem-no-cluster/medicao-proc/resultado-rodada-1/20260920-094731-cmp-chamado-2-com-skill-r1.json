@@ -1,0 +1,116 @@
+{
+  "skills": [
+    "metacortex-triagem"
+  ],
+  "skills_disponiveis": {
+    "skills": [
+      "metacortex-manifests",
+      "metacortex-triagem",
+      "design",
+      "design-sync",
+      "dataviz",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "schedule",
+      "claude-api",
+      "run",
+      "run-skill-generator"
+    ],
+    "mcp_servers": [
+      {
+        "name": "kubernetes",
+        "status": "connected"
+      },
+      {
+        "name": "claude.ai Claude Docs",
+        "status": "connected"
+      },
+      {
+        "name": "claude.ai Google Drive",
+        "status": "connected"
+      }
+    ],
+    "model": "claude-sonnet-5"
+  },
+  "ferramentas": [
+    {
+      "nome": "Skill",
+      "entrada": {
+        "skill": "metacortex-triagem",
+        "args": "Chamado do cliente orion: a loja do fake-shop em orion-stg parou depois de uma publicação do Loom; a tag foi anunciada e o deploy aplicado, mas o pod nunca trocou. Fazer a triagem e identificar a causa raiz."
+      }
+    },
+    {
+      "nome": "ToolSearch",
+      "entrada": {
+        "query": "select:mcp__kubernetes__kubectl_get,mcp__kubernetes__kubectl_describe,mcp__kubernetes__kubectl_logs",
+        "max_results": 5
+      }
+    },
+    {
+      "nome": "mcp__kubernetes__kubectl_get",
+      "entrada": {
+        "resourceType": "pods",
+        "namespace": "orion-stg",
+        "output": "wide"
+      }
+    },
+    {
+      "nome": "mcp__kubernetes__kubectl_describe",
+      "entrada": {
+        "resourceType": "pod",
+        "name": "orion-web-67888d986c-5ttt6",
+        "namespace": "orion-stg"
+      }
+    },
+    {
+      "nome": "mcp__kubernetes__kubectl_get",
+      "entrada": {
+        "resourceType": "pod",
+        "name": "orion-web-67888d986c-5ttt6",
+        "namespace": "orion-stg",
+        "output": "json"
+      }
+    },
+    {
+      "nome": "mcp__kubernetes__kubectl_get",
+      "entrada": {
+        "resourceType": "deployment",
+        "name": "orion-web",
+        "namespace": "orion-stg",
+        "output": "json"
+      }
+    }
+  ],
+  "sequencia": [
+    "Skill",
+    "ToolSearch",
+    "kubectl_get",
+    "kubectl_describe",
+    "kubectl_get",
+    "kubectl_get"
+  ],
+  "tentativas_escrita": [],
+  "recusas_permissao": [],
+  "custo_usd": 0.15351520000000002,
+  "duracao_ms": 31137,
+  "duracao_api_ms": 31604,
+  "turnos": 8,
+  "tokens_entrada": 274450,
+  "tokens_saida": 3095,
+  "fim": "success",
+  "resposta_final": "## Triagem — orion-stg — \"loja do fake-shop parou depois da publicação do Loom\"\n\n**Causa:** imagem/registry — a tag `fabricioveronez/fake-shop:v1.14.2` anunciada pelo Loom não existe no `docker.io`\n\n**Evidência:**\n- `status.containerStatuses[].state.waiting.message` do pod `orion-web-67888d986c-5ttt6`: `\"...failed to resolve reference \\\"docker.io/fabricioveronez/fake-shop:v1.14.2\\\": docker.io/fabricioveronez/fake-shop:v1.14.2: not found\"` — mensagem original do registry, não só o back-off dos eventos\n- Deployment `orion-web`: `revision: \"1\"` (é a única revisão — não há ReplicaSet antigo por trás), `status.conditions`: `Progressing=False / ProgressDeadlineExceeded` (\"ReplicaSet has timed out progressing\") e `Available=False / MinimumReplicasUnavailable`\n\n**Funcionando ao lado:** `orion-postgres` — `1/1 Running`, 0 restarts, saudável\n\n**Hipóteses descartadas:**\n- Container crashando (CrashLoopBackOff/OOM) — descartada: RESTARTS=0 em todos os pods `orion-web`, não `Error`/`OOMKilled`\n- \"Pod antigo não foi substituído\" (problema de rollout) — descartada: `revision: 1` no Deployment, não existe ReplicaSet anterior; os 3 pods já são da versão nova (`orion-web-67888d986c`, mesmo `pod-template-hash` da spec atual) — eles nunca chegaram a subir, não é uma troca travada\n\n**Correção sugerida (NÃO aplicada):** confirmar com o time do Loom se a tag `v1.14.2` foi de fato publicada no `docker.io/fabricioveronez/fake-shop` (parece ter sido anunciada antes do push terminar, ou o nome/tag está errado). Corrigido o publish, o Deployment vai puxar a imagem automaticamente (`imagePullPolicy: IfNotPresent`, sem necessidade de reaplicar). Nenhuma alteração de manifesto é necessária.\n\n**Caminho percorrido:**\n1. `kubectl_get pods -n orion-stg -o wide` → 3 pods `orion-web` em `ImagePullBackOff`, `orion-postgres` saudável\n2. `kubectl_describe pod orion-web-67888d986c-5ttt6` → eventos só com back-off repetido, imagem `fabricioveronez/fake-shop:v1.14.2`\n3. `kubectl_get pod ... -o json` → mensagem completa do registry: `not found`\n4. `kubectl_get deployment orion-web -o json` → confirma revisão única, sem rollout anterior, `ProgressDeadlineExceeded`",
+  "rotulo": "cmp-chamado-2-com-skill-r1",
+  "lab": "lab-com-skills",
+  "prompt": "Chamado do cliente orion: a loja do fake-shop em orion-stg parou depois de uma publicação do Loom; a tag foi anunciada e o deploy aplicado, mas o pod nunca trocou. Faz a triagem e me diz a causa.",
+  "tempo_parede_ms": 34425,
+  "rc": 0,
+  "stderr": ""
+}
