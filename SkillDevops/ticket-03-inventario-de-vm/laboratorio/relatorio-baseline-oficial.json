@@ -1,0 +1,457 @@
+{
+  "host": {
+    "endereco": "172.29.2.241",
+    "hostname": "DESKTOP-ENKOORK",
+    "coletado_em": "2026-09-20T22:24:26Z"
+  },
+  "inventario": {
+    "so": {
+      "distribuicao": "ubuntu",
+      "versao": "26.04"
+    },
+    "kernel": {
+      "versao": "6.18.33.2-microsoft-standard-WSL2"
+    },
+    "servicos": [
+      {
+        "nome": "chrony",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "console-setup",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "cron",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "dbus",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "getty@tty1",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "keyboard-setup",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "kmod-static-nodes",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "netplan-configure",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "networkd-dispatcher",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "polkit",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "rsyslog",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "setvtrgb",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "snapd.seeded",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "ssh",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "systemd-binfmt",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "systemd-journal-flush",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "systemd-journald",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "systemd-logind",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "systemd-modules-load",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "systemd-remount-fs",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "systemd-resolved",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "systemd-sysctl",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "systemd-tmpfiles-setup-dev-early",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "systemd-tmpfiles-setup-dev",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "systemd-tmpfiles-setup",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "systemd-udev-load-credentials",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "systemd-udev-trigger",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "systemd-udevd",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "systemd-user-sessions",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "unattended-upgrades",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "user-runtime-dir@0",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "user-runtime-dir@1000",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "user@0",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "user@1000",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "wsl-pro",
+        "tipo": "service",
+        "estado": "active"
+      },
+      {
+        "nome": "apport-forward",
+        "tipo": "socket",
+        "estado": "active"
+      },
+      {
+        "nome": "dbus",
+        "tipo": "socket",
+        "estado": "active"
+      },
+      {
+        "nome": "polkit-agent-helper",
+        "tipo": "socket",
+        "estado": "active"
+      },
+      {
+        "nome": "snapd",
+        "tipo": "socket",
+        "estado": "active"
+      },
+      {
+        "nome": "ssh",
+        "tipo": "socket",
+        "estado": "active"
+      },
+      {
+        "nome": "sshd-unix-local",
+        "tipo": "socket",
+        "estado": "active"
+      },
+      {
+        "nome": "syslog",
+        "tipo": "socket",
+        "estado": "active"
+      },
+      {
+        "nome": "systemd-ask-password",
+        "tipo": "socket",
+        "estado": "active"
+      },
+      {
+        "nome": "systemd-creds",
+        "tipo": "socket",
+        "estado": "active"
+      },
+      {
+        "nome": "systemd-factory-reset",
+        "tipo": "socket",
+        "estado": "active"
+      },
+      {
+        "nome": "systemd-hostnamed",
+        "tipo": "socket",
+        "estado": "active"
+      },
+      {
+        "nome": "systemd-journald-dev-log",
+        "tipo": "socket",
+        "estado": "active"
+      },
+      {
+        "nome": "systemd-journald",
+        "tipo": "socket",
+        "estado": "active"
+      },
+      {
+        "nome": "systemd-logind-varlink",
+        "tipo": "socket",
+        "estado": "active"
+      },
+      {
+        "nome": "systemd-mute-console",
+        "tipo": "socket",
+        "estado": "active"
+      },
+      {
+        "nome": "systemd-resolved-monitor",
+        "tipo": "socket",
+        "estado": "active"
+      },
+      {
+        "nome": "systemd-resolved-varlink",
+        "tipo": "socket",
+        "estado": "active"
+      },
+      {
+        "nome": "systemd-sysext",
+        "tipo": "socket",
+        "estado": "active"
+      },
+      {
+        "nome": "systemd-udevd-control",
+        "tipo": "socket",
+        "estado": "active"
+      },
+      {
+        "nome": "systemd-udevd-kernel",
+        "tipo": "socket",
+        "estado": "active"
+      },
+      {
+        "nome": "systemd-udevd-varlink",
+        "tipo": "socket",
+        "estado": "active"
+      }
+    ],
+    "swap": {
+      "habilitado": true,
+      "tamanho": 4294967296
+    },
+    "portas_em_escuta": [
+      {
+        "porta": 53,
+        "bind": "127.0.0.54",
+        "processo": null
+      },
+      {
+        "porta": 53,
+        "bind": "10.255.255.254",
+        "processo": null
+      },
+      {
+        "porta": 22,
+        "bind": "0.0.0.0",
+        "processo": null
+      },
+      {
+        "porta": 53,
+        "bind": "127.0.0.53%lo",
+        "processo": null
+      },
+      {
+        "porta": 22,
+        "bind": "::",
+        "processo": null
+      }
+    ],
+    "chaves_ssh": [
+      {
+        "identificacao": "platform@metacortex-platform"
+      }
+    ],
+    "ssh": {
+      "login_de_root": null
+    },
+    "ntp": {
+      "sincronizado": true,
+      "mecanismo": "chrony"
+    }
+  },
+  "conformidade": [
+    {
+      "regra": "so.distribuicao",
+      "esperado": "ubuntu",
+      "encontrado": "ubuntu",
+      "veredito": "conforme"
+    },
+    {
+      "regra": "so.versao_minima",
+      "esperado": "22.04",
+      "encontrado": "26.04",
+      "veredito": "conforme"
+    },
+    {
+      "regra": "kernel.versao_minima",
+      "esperado": "6.5",
+      "encontrado": "6.18.33.2-microsoft-standard-WSL2",
+      "veredito": "conforme"
+    },
+    {
+      "regra": "servicos.ativos",
+      "esperado": [
+        "ssh",
+        "containerd",
+        "node_exporter",
+        "chrony"
+      ],
+      "encontrado": {
+        "ativos": [
+          "chrony.service",
+          "ssh.service"
+        ],
+        "ausentes_ou_inativos": [
+          "containerd.service",
+          "node_exporter.service"
+        ]
+      },
+      "veredito": "desvio",
+      "severidade": "alto"
+    },
+    {
+      "regra": "servicos.proibidos",
+      "esperado": [
+        "telnet.socket",
+        "rpcbind.socket"
+      ],
+      "encontrado": {
+        "proibidos_presentes": []
+      },
+      "veredito": "conforme"
+    },
+    {
+      "regra": "swap.habilitado",
+      "esperado": false,
+      "encontrado": true,
+      "veredito": "desvio",
+      "severidade": "critico"
+    },
+    {
+      "regra": "portas_em_escuta.publicas_permitidas",
+      "esperado": [
+        22
+      ],
+      "encontrado": {
+        "publicas_nao_permitidas": []
+      },
+      "veredito": "conforme"
+    },
+    {
+      "regra": "portas_em_escuta.somente_rede_interna",
+      "esperado": [
+        9100
+      ],
+      "encontrado": [
+        {
+          "porta": 9100,
+          "enderecos": []
+        }
+      ],
+      "veredito": "desvio",
+      "severidade": "critico"
+    },
+    {
+      "regra": "chaves_ssh.emitidas_por",
+      "esperado": "metacortex-platform",
+      "encontrado": {
+        "escopo": "authorized_keys do usuário que conectou (orpheu)",
+        "total": 1,
+        "incompativeis": []
+      },
+      "veredito": "conforme"
+    },
+    {
+      "regra": "ssh.login_de_root",
+      "esperado": false,
+      "encontrado": null,
+      "veredito": "nao_verificado",
+      "motivo": "fato 'ssh_login_root' não lido pela coleta: sshd -T falhou (privilégio insuficiente para ler a configuração efetiva)"
+    },
+    {
+      "regra": "ntp.sincronizado",
+      "esperado": true,
+      "encontrado": true,
+      "veredito": "conforme"
+    }
+  ],
+  "resumo": {
+    "conforme": 7,
+    "desvio": 3,
+    "nao_verificado": 1,
+    "por_severidade": {
+      "critico": 2,
+      "alto": 1,
+      "medio": 0
+    }
+  }
+}

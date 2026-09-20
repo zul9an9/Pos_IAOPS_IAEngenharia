@@ -1,0 +1,18 @@
+# Baseline REDUZIDO do host de laboratório (WSL2), no layout oficial: só regras que esse host cumpre.
+# Fica de fora ssh.login_de_root, que nasce nao_verificado (sshd -T exige privilégio),
+# e as regras que o baseline oficial usa para produzir desvios reais (containerd, node_exporter,
+# swap desabilitado e porta 9100).
+versao: 1
+aplica_a: vms-do-parque
+esperado:
+  so: {distribuicao: ubuntu, versao_minima: "24.04"}
+  kernel: {versao_minima: "6.5"}
+  servicos: {ativos: [ssh, cron, chrony], proibidos: [telnet.socket, rpcbind.socket]}
+  swap: {habilitado: true}
+  portas_em_escuta: {publicas_permitidas: [22]}
+  chaves_ssh: {emitidas_por: metacortex-platform}
+  ntp: {sincronizado: true}
+severidade:
+  critico: [swap.habilitado, chaves_ssh.emitidas_por, portas_em_escuta.publicas_permitidas]
+  alto: [servicos.ativos, servicos.proibidos, so.distribuicao, so.versao_minima]
+  medio: [kernel.versao_minima, ntp.sincronizado]
