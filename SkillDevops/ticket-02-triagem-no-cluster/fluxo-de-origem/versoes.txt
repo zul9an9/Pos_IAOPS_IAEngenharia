@@ -1,0 +1,10 @@
+kind v0.33.0 go1.26.7 windows/amd64
+Client Version: v1.32.2
+Kustomize Version: v5.5.0
+Server Version: v1.37.0
+2.1.270 (Claude Code)
+Checking MCP server health...
+
+claude.ai Claude Docs: https://api.anthropic.com/v1/pages/mcp - Connected
+claude.ai Google Drive: https://drivemcp.googleapis.com/mcp/v1 - Connected
+cgroup=2 mem=5157531648 cpus=4
