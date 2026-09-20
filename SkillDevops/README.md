@@ -1,87 +1,118 @@
-# Ticket 01 — O padrão do Seraph que ninguém abre
+# Ticket 02 — Triagem no cluster, e duas skills disputando o mesmo pedido
 
-A skill `metacortex-manifests` empacota o **Padrão de Manifests da Metacortex (rev. 2026-07-29)**
-em dois modos: **escrever** um manifesto novo já no padrão e **conferir** um manifesto existente.
-O que é mecânico virou script, que roda o Trivy e confere o que o Trivy não conhece. O que exige
-ler o projeto virou instrução.
+**Status:** concluído. Fases A (fluxo manual), B (skill), C (triagem, comparação e matriz em
+duas rodadas) e D (curadoria).
 
-## Mapa da entrega
+## Resultado em uma tabela
 
-| Pedido do ticket | Onde está |
-|---|---|
-| A skill completa (corpo, script, apoio) | `skill/metacortex-manifests/` e `metacortex-manifests.skill` (empacotada) |
-| A origem da skill | seção "Origem" abaixo e `fluxo-de-origem/` |
-| Saída real: manifests gerados (fake-shop) | `execucoes/01-escrita-fake-shop/` |
-| Saída real: conferência do manifesto barrado (nyx) | `execucoes/02-conferencia-nyx/` |
-| A curadoria (linha script/instrução, corpo × apoio, o que não entrou, permissões) | `curadoria.md` |
-| O padrão usado | `padrao-oficial/` |
-
-```
-ticket-01-padrao-de-manifests/
-├── README.md
-├── curadoria.md
-├── padrao-oficial/Padrao-de-Manifests-da-Metacortex.md
-├── fluxo-de-origem/                 # o que foi rodado antes (e depois) da skill existir
-├── skill/metacortex-manifests/
-│   ├── SKILL.md
-│   ├── scripts/conferir.py          # Trivy + regras da casa; código de saída para pipeline
-│   ├── scripts/trivyignore          # 1 supressão justificada (KSV-0125)
-│   ├── references/padrao.md         # regras, severidade, forma de conferência, mapa KSV
-│   ├── references/decisoes.md       # sem health, migração, banco junto, diretórios graváveis
-│   └── assets/modelo-app.yaml
-├── metacortex-manifests.skill
-└── execucoes/
-    ├── 01-escrita-fake-shop/        # manifests/orion-prod/, decisoes.md, conferencia-final.md
-    └── 02-conferencia-nyx/          # relatorio-conferencia.md, correcao-proposta/, variante-exemplo-do-padrao/
-```
-
-## Origem
-
-- **De qual fluxo nasceu.** Da execução manual das duas tarefas antes de a skill existir:
-  - ler o código do kube-news e do fake-shop;
-  - rodar `trivy config` e `trivy fs --scanners secret` no manifesto barrado;
-  - sondar o catálogo do Trivy com manifests construídos para isso;
-  - validar com kubeconform.
-
-  Essas saídas reais mostraram o que o Trivy cobre e o que não cobre, e isso virou o escopo
-  exato do script.
-- **Por qual caminho.**
-  1. Fluxo manual.
-  2. Classificação regra por regra (mecânica, contextual, não empacotar).
-  3. Script cobrindo só a lacuna do Trivy.
-  4. SKILL.md com os dois modos e o checklist de leitura.
-  5. Execução nos dois modos.
-  6. Ajustes.
-  7. **Revisão completa quando o padrão oficial chegou**: a v1 tinha sido feita contra uma
-     reconstrução, porque o anexo ainda não estava disponível (ver `curadoria.md` §7).
-  8. Nova execução nos dois modos.
-  9. Validação da estrutura e empacotamento.
-- **Com qual ferramenta.** Claude (claude.ai, Claude Opus 5) com execução de código num container
-  Linux, seguindo o guia `skill-creator` da Anthropic para a anatomia da skill (frontmatter,
-  `scripts/`, `references/`, `assets/`, carregamento progressivo). No fluxo também foram usados
-  Trivy 0.74.0, kubeconform 0.8.0, Python 3 com PyYAML e git.
-
-## Instalar e usar
-
-```bash
-cp -r skill/metacortex-manifests ~/.claude/skills/     # ou .claude/skills/ no repositório
-# requisitos: python3 + pyyaml, trivy
-```
-
-Pedidos que disparam a skill: "esse manifesto está no padrão da casa?", "revisa esse deployment
-antes de eu subir", "gera os manifests do fake-shop pro orion".
-
-O script roda também sozinho, por exemplo num pipeline:
-
-```bash
-python3 skill/metacortex-manifests/scripts/conferir.py manifests/ --json conferencia.json
-# 0 = nenhuma falha · 1 = falha (obrigatório/proibido) · 2 = erro de leitura
-```
-
-## Resultado das duas execuções
-
-| Execução | Entrada | Resultado |
+| Pedido do ticket | Resultado | Onde |
 |---|---|---|
-| Escrita | fake-shop, cliente orion, prod | 7 objetos em 3 arquivos, mais o `SECRET.md`. Conferência: **1 falha**, a regra 2.3 no Postgres single-instance. Não é contornável sem dividir o banco, então segue como **pedido de exceção** a S&C, com opções e custos. 0 avisos. 12 itens contextuais resolvidos com evidência. Trivy cru: só o falso positivo de registry. kubeconform válido. Achado grave para o cliente: cartão e CVV gravados em texto. |
-| Conferência | manifesto barrado do nyx | **BARRADO**, sem direito a exceção (violação de regras *proibidas*): 25 falhas e 2 avisos. Três delas derrubam o cliente: o nome é rejeitado pela API, o Service fica sem endpoint e o app não lê `DATABASE_URL`. A última só aparece lendo o kube-news, e o **exemplo "certo" do próprio padrão passaria na conferência mecânica e continuaria quebrado**. A correção proposta sai com 0 falhas e 0 avisos. |
+| Triagem dos 3 chamados, com a causa | 3/3 causas certas, iguais às da triagem manual, com 6 a 7 chamadas de leitura cada | `execucoes/` |
+| Comparação com × sem skill | 4/4 × 2/4 causas · US$ 0,58 × 1,28 · 127 s × 284 s · 26 × 80 chamadas · **0 × 8 escritas** | `medicao/ANALISE.md` §1–3 |
+| Matriz de roteamento | Rodada 1: 19/20, sem atropelo entre as skills; frases 5 (mal formulada) e 7 (ambígua) geraram ajustes. Rodada 2: 3/3 nas duas, com o comportamento esperado. 0 escritas em 26 sessões | `medicao/ANALISE.md` §4 |
+| Curadoria | o que o método fixou, o que ficou com o agente, como se garantiu que não escreve | `curadoria.md` |
 
+| Fase | O quê | Estado | Saída |
+|---|---|---|---|
+| A1 | Subir o cluster e os 3 chamados; triar à mão com `k.py` (só leitura, tudo registrado) | ✅ | `fluxo-de-origem/logs/` |
+| B | Escrever a skill a partir do fluxo | ✅ | `skill/metacortex-triagem/` |
+| C1 | Rodar a skill nos 3 chamados (causa de cada um) | ✅ | `execucoes/` |
+| C2 | Comparação com e sem skill (3 chamados + caso limite) | ✅ | `medicao/ANALISE.md`, `medicao/resultados-rodada1/` |
+| C3 | Matriz de roteamento, rodada 1, e ajustes | ✅ | `medicao/ANALISE.md` §4 |
+| C4 | Matriz, rodada 2 (frases 5 e 7) | ✅ | `medicao/ANALISE.md` §4, `medicao/resultados-rodada2/` |
+| D | Curadoria | ✅ | `curadoria.md` |
+
+## Ambiente do laboratório (e a triagem que veio antes da triagem)
+
+Windows com Docker Desktop (WSL2), 8 GB de RAM na máquina, **kind v0.33.0** e Kubernetes
+**v1.37.0**.
+
+Subir o cluster foi, por si só, uma triagem em camadas:
+1. O `kind create cluster` falhava em `wait-control-plane`. O primeiro suspeito foi memória:
+   o Docker tinha cerca de 3,8 GB. O `.wslconfig` foi para 5 GB com swap, e **a falha
+   continuou**.
+2. O k3d subia os containers, mas o k3s morria. O **log do servidor** mostrou a causa real:
+   `kubelet is configured to not run on a host using cgroup v1`. As versões recentes do
+   Kubernetes recusam cgroup v1.
+3. A correção foi `kernelCommandLine = cgroup_no_v1=all` no `.wslconfig`, mais `wsl --update`.
+   O Docker passou a reportar `CgroupVersion 2`, e **o kind subiu em 16 segundos**.
+
+O sintoma apontava para uma camada (memória) e a causa estava em outra (versão de cgroup do
+kernel). O método que a skill empacota diz o mesmo: quem decide o caminho é a evidência, não o
+sintoma declarado.
+
+## Origem da skill
+
+- **De qual fluxo nasceu.** Da triagem manual dos três chamados, feita no cluster com o `k.py`:
+  um kubectl que recusa escrita e registra comando, saída e raciocínio. Os logs estão em
+  `fluxo-de-origem/logs/`:
+  - chamado 0 (foto inicial);
+  - chamados 1, 2 e 3, cada um com sintoma, notas de raciocínio, comandos com saída, causa,
+    "funcionando ao lado" e fim.
+- **Como foi conduzida.** A triagem foi feita **em par**: o operador rodou os comandos e
+  escreveu as conclusões, e o Claude, sem dar a causa, apontou que tipo de fonte consultar a
+  cada passo. As notas de correção nos logs (texto de modelo gravado por engano e depois
+  corrigido) foram mantidas.
+- **O que o fluxo ensinou e virou método:**
+  - sempre começar pelo estado dos pods e anotar o que está saudável ao lado;
+  - escolher o ramo pela **assinatura**, não pelo sintoma: CrashLoop/OOMKilled leva à camada
+    do container, ImagePullBackOff com 0 restarts à imagem, pods 1/1 com cliente sem acesso ao
+    caminho do tráfego;
+  - os três momentos de cruzar fontes:
+    - motivo numa fonte e descarte da alternativa em outra (`describe` + `logs --previous`
+      vazio);
+    - fonte principal que perdeu a informação (eventos só com back-off → status do container);
+    - defeito num vínculo entre objetos (seletor × rótulos);
+  - parar quando houver camada, o quê e evidência.
+- **O que a leitura do código do MCP acrescentou.** O `kubectl_get` em JSON **resume listas**
+  e descarta READY, RESTARTS, rótulos e endpoints, exatamente os sinais que resolveram os três
+  chamados. A skill obriga `output: wide` em listas e o objeto completo por nome para campos
+  específicos.
+- **Ferramenta.** Claude (claude.ai, Claude Opus 5) para conduzir a triagem, ler o código do
+  mcp-server-kubernetes e escrever a skill, seguindo a anatomia do guia `skill-creator`
+  (frontmatter, corpo curto, `references/` sob demanda).
+
+## Estrutura
+
+```
+ticket-02-triagem-no-cluster/
+├── README.md
+├── PASSO-A-PASSO.md          # fase A
+├── FASE-C.md                 # fase C (rodar, comparar, matriz)
+├── ambiente/                 # os 3 chamados, verbatim do ticket
+├── fluxo-de-origem/
+│   ├── k.py                  # kubectl somente leitura que registra comando, saída e raciocínio
+│   ├── logs/chamado-0..3.md  # a triagem manual
+│   └── versoes.txt
+├── skill/metacortex-triagem/
+│   ├── SKILL.md
+│   └── references/
+│       ├── assinaturas.md    # assinatura → leitura → segunda fonte (com a origem de cada ramo)
+│       └── mcp-leitura.md    # como chamar as ferramentas de leitura e o que o resumo JSON esconde
+├── execucoes/                # saída real da triagem com a skill (3 chamados + limite)
+├── curadoria.md
+└── medicao/
+    ├── ANALISE.md            # comparação, caso limite e matriz, com o que mudou
+    ├── resultados-rodada1/   # transcripts (.jsonl), resumos (.json), respostas (.md), evidências do limite
+    ├── resultados-rodada2/   # matriz, frases 5 e 7, depois dos ajustes
+    ├── rodar_sessao.py       # sessões limpas do Claude Code + análise do transcript
+    ├── matriz.json           # 10 frases, classe e roteamento aceito
+    └── comparacao.json       # 3 chamados + caso limite, com critério objetivo de causa certa
+```
+
+## Achados até aqui
+
+1. **"Modo não destrutivo" não é "somente leitura".** No código do servidor (commit
+   `0340ab6`), esse modo remove só delete, uninstall, cleanup, node management e
+   `kubectl_generic`. Ficam liberados `kubectl_apply`, `kubectl_create`, `kubectl_patch`,
+   `kubectl_scale`, `kubectl_rollout` (incluindo `restart` e `undo`), helm install/upgrade,
+   `port_forward` e **`exec_in_pod`**. Por isso o limite "triagem lê, nunca escreve" tem de vir
+   do método, e a fase C mede isso no caso `limite`, com o agente tendo permissão real de
+   escrita.
+2. **O braço resume demais.** O `kubectl_get` em JSON devolve só nome e status calculado. Um
+   Deployment sem réplica pronta nem traz `readyReplicas`. Sem saber disso, o agente não vê
+   RESTARTS, `0/N` nem endpoints vazios.
+3. **O MCP usa o `kubectl` do PATH.** A diferença de versão (client 1.32 × server 1.37) afeta
+   a triagem do agente, e não só a manual.
+4. **Endpoints está depreciado** (aviso no chamado 3). É irrelevante para a triagem de hoje,
+   mas é a decisão que o Ticket 04 pede para registrar.

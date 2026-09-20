@@ -1,154 +1,91 @@
-# Curadoria da skill `metacortex-manifests`
+# Curadoria — skill `metacortex-triagem` e convivência com `metacortex-manifests`
 
-## 1. Onde passa a linha entre script e instrução
+## 1. O que o método fixou
 
-O critério foi uma pergunta feita a cada regra: **a resposta é a mesma para qualquer manifesto,
-olhando só o YAML?** Se sim, a regra é mecânica. Se depende de saber o que a aplicação faz, é
-contextual. Várias regras do padrão têm as duas metades, e cada metade foi para o seu lado.
+O que ficou **fixo** na skill veio da triagem manual dos três chamados (`fluxo-de-origem/logs/`)
+e da leitura do código do mcp-server-kubernetes:
 
-| Tipo | Regras | Quem confere |
-|---|---|---|
-| Mecânica que o Trivy já cobre | 2.1 (presença), 3.2, 3.6, 3.1 (`:latest`) | `trivy config`, a mesma varredura que S&C roda no pipeline, traduzida pelo script |
-| Mecânica que só a Metacortex sabe | 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 2.3, 2.4, 2.5, 3.4 (presença), 3.5, 3.7, 3.3 (literal, ConfigMap, comentário, Secret versionado) | `conferir.py` |
-| Híbrida | 2.2 (tem probe? / o endpoint existe e não checa banco?), 2.1 (tem limite? / o valor fica entre 1,5x e 2x do consumo?), 3.3 (tem literal? / quais variáveis a app lê e quais são sensíveis?), 3.2 (FS read-only? / onde a app escreve?), 3.4 (token desmontado? / a app fala com a API?) | o script acusa a metade mecânica e emite "revisar"; o SKILL.md resolve a outra |
-| Só contextual | 2.6 (SIGTERM, drenagem, PID 1) | instrução |
-
-**Regra de ouro: não reimplementar o Trivy.** O script não verifica securityContext, requests e
-limits nem acesso ao host: só traduz os IDs KSV para a numeração do padrão. O mapa foi levantado
-rodando o Trivy, não suposto. A exceção é o `:latest`: o script só o verifica quando o Trivy não
-está disponível, para não deixar uma regra *proibida* sem cobertura.
-
-**A prova de que a metade contextual não é opcional** está em
-`execucoes/02-conferencia-nyx/variante-exemplo-do-padrao/`. O manifesto do nyx foi corrigido
-seguindo à risca o exemplo "certo" da regra 3.3 (`DATABASE_URL` via `secretKeyRef`) e passou na
-conferência mecânica com **0 falhas**. Mesmo assim, o kube-news não conectaria no banco, porque
-não lê essa variável. Nenhum script pega isso; só abrir o projeto.
-
-**Conflitos com o catálogo do Trivy.** Só um ficou suprimido, em `scripts/trivyignore` com
-justificativa: o KSV-0125, falso positivo de registry "não confiável" para
-`registry.metacortex.io`. Nos manifests gerados, é o **único** achado cru do Trivy. Se o Trivy do
-pipeline de S&C não tiver o registry interno configurado como confiável, ele acusa isso em todo
-manifesto do parque, e vale levar ao Seraph. Checks do catálogo que o padrão não pede (seccomp,
-hostIPC, hostPath, GID) aparecem como **informativo**: não são suprimidos e não barram.
-
-## 2. O que ficou no corpo do SKILL.md
-
-Ficou o que o agente usa em **toda** execução:
-- os limites (não aplicar, não inventar, não escrever credencial, não incluir Namespace);
-- o regime de severidade e exceção do padrão, que decide o veredito;
-- o roteiro dos dois modos;
-- o **checklist de leitura do projeto**, que é o conhecimento que o script não tem;
-- o formato de saída;
-- a prioridade "quebra funcional antes de desvio de padrão".
-
-Essa prioridade é a lição mais importante da conferência do nyx. Das 25 falhas, três derrubam o
-cliente mesmo depois de "passar": o nome rejeitado pela API, o Service sem endpoint e a
-variável que o código não lê. Um relatório plano esconderia isso entre achados de securityContext.
-
-## 3. O que virou arquivo consultado sob demanda
-
-| Arquivo | Quando é aberto | Por que não está no corpo |
-|---|---|---|
-| `references/padrao.md` | para citar o texto e a severidade de uma regra, ou o mapa Trivy→regra | o script já aplica as regras; o texto só é preciso para explicar |
-| `references/decisoes.md` | quando a leitura esbarra em: sem endpoint de saúde, migração no start, banco junto, diretórios graváveis | só alguns projetos caem nisso (o fake-shop cai em todos; o nyx em nenhum) |
-| `assets/modelo-app.yaml` | só no modo escrita | a conferência não precisa |
-| `scripts/conferir.py`, `scripts/trivyignore` | executados, nunca lidos | código não precisa entrar no contexto para funcionar |
-
-## 4. O que decidi não empacotar
-
-- **O Bloco 4 inteiro (4.1 a 4.8).** O próprio padrão diz que ele foi escrito "para quem está
-  chegando" e que "quem já opera pode pular". Ele descreve Pod, ReplicaSet, Deployment, Service,
-  port/targetPort, Endpoints, ConfigMap/Secret e probes, e o modelo já sabe tudo isso. Carregar
-  o bloco em toda ativação gastaria contexto sem mudar nenhuma decisão. Nada da essência se
-  perdeu:
-  - a distinção readiness/liveness (4.8) já está na regra 2.2, que é o que a revisão cobra;
-  - "Secret é base64, não criptografia" (4.7) já está na 3.3;
-  - o comportamento do Endpoints ausente em vez de vazio (4.6) é útil, mas é do **Ticket 04**
-    (dashboard), não da escrita ou conferência de manifesto;
-  - "NodePort é usado na borda" (4.4) é uma descrição, não uma regra, e por isso a skill não
-    restringe o tipo de Service.
-- **Validação de schema (kubeconform, `kubectl --dry-run=server`).** Foi usada no fluxo, mas não
-  entrou. O ferramental do time é o Trivy, e o dry-run de servidor exige credencial de cluster,
-  justamente a porta que a skill mantém fechada. Fica como recomendação de pipeline.
-- **Cálculo de requests e limits.** A 2.1 pede limite de memória entre 1,5x e 2x o *consumo
-  observado*, e o manifesto não tem essa informação. A skill exige que os valores existam e
-  obriga o relatório a declarar se vieram de métrica ou são iniciais. Cortar sem medir é o que
-  gera o Chamado 1 do Ticket 02.
-- **Verificar se a tag existe no registry.** Isso é olhar o mundo, não o arquivo; é território
-  da skill de triagem do Ticket 02. A fronteira é o que evita que as duas disputem o mesmo pedido.
-- **Validar exceções.** Elas vivem no PR, com aprovação de S&C e prazo, e o script não enxerga
-  PR. A skill identifica quando uma falha precisa de exceção e escreve o pedido; não finge que a
-  exceção existe.
-- **Corrigir o código do cliente.** `secret_key` hardcoded, cartão e CVV gravados em texto,
-  `sequelize.sync` no boot, falta de tratamento de SIGTERM e entrypoint sem `set -e` saem como
-  recomendação.
-- **NetworkPolicy, topologySpread e seccomp como exigência.** Não estão no padrão. O seccomp foi
-  mantido no modelo por custo zero, mas o script não o exige.
-
-## 5. Permissões que a skill pede
-
-Declaradas em `allowed-tools`:
-
-| Permissão | Para quê | Limite |
-|---|---|---|
-| `Read`, `Grep`, `Glob` | ler manifests e o código do projeto | mínimo para a metade contextual |
-| `Write`, `Edit` | modo escrita: gerar ou corrigir manifests | o diretório de destino é restrição de instrução (`allowed-tools` não limita caminho) |
-| `Bash(python3 *conferir.py*)` | rodar o script empacotado | só esse script |
-| `Bash(trivy config*)` | o script chama o Trivy; o agente pode ver a saída crua | só `config`: sem scan de imagem nem de cluster |
-| `Bash(git clone*)` | trazer o projeto a partir da URL | única saída de rede prevista |
-
-O que a skill **não** pede, de propósito:
-- `kubectl` com qualquer verbo, inclusive leitura: o cluster é da triagem;
-- Bash livre;
-- acesso a credencial.
-
-## 6. A description e a convivência com a skill de triagem
-
-A description diz o que a skill faz e **o que ela não faz**: diagnosticar objetos rodando e
-explicar conceitos. Esse "não" antecipa o Ticket 02, em que uma segunda skill ocupa o mesmo
-território (Kubernetes, YAML, coisa quebrada). Pedidos como "esse manifesto não sobe no cluster"
-são ambíguos entre as duas, e a matriz de roteamento vai testar essa fronteira.
-
-## 7. O que mudou quando o padrão oficial chegou
-
-A v1 foi feita contra um padrão reconstruído, porque o anexo não estava disponível. Quando o
-oficial chegou, o **método** sobreviveu inteiro: a divisão script/instrução, o Trivy antes do
-script, os dois modos, o checklist de leitura e o Bloco 4 fora. O **conteúdo** mudou muito.
-
-| Mudança | Itens |
+| Fixado | De onde veio |
 |---|---|
-| Removidos: inventados na v1, ausentes do padrão | prefixo do cliente no nome; rótulos `component` e `metacortex.io/{cliente,ambiente}`; réplicas ≥ 2 em stg; `topologySpreadConstraints`; regra de migração; seccomp; hostIPC e hostPath; NetworkPolicy obrigatória; Service só ClusterIP; registry por cliente; tag obrigatoriamente semver; exceção por anotação |
-| Invertidos | **2.1**: a v1 dispensava limite de CPU e suprimia o KSV-0011; o padrão exige. **3.2**: a v1 tratava UID > 10000 como informativo; o padrão mostra `runAsUser: 10001`, e o Postgres saiu do UID 70 |
-| Novos | 1.6 (nome de container); 2.4 (strategy em prod); 2.6 (grace period e SIGTERM); 3.3 em ConfigMap e **comentário** (o script passou a varrer o texto cru); semântica da 1.3 (`instance` = instalação, `managed-by` em `platform\|argocd\|helm`) |
-| Estruturais | três severidades (a v1 tinha só falha); exceção obrigatória via PR com S&C e prazo; proibido sem exceção; o Namespace é criado pelo Construct e saiu dos manifests; `owner` passou de obrigatório a recomendado |
+| **Limite absoluto**: só as ferramentas de leitura, nomeadas; proibição explícita de apply, create, patch, scale, rollout (inclusive `status`), exec, port-forward, helm e troca de contexto; roteiro para "já corrige pra mim" (sugerir, dizer quem aplica, não executar) | ticket + código do MCP (o modo não destrutivo libera escrita e `exec_in_pod`) |
+| **Passo 0**: pedido sobre arquivo → perguntar se foi aplicado e qual erro apareceu | matriz, rodada 1 (frase 7) |
+| **Passo 1**: sempre começar por `get pods` do namespace em `output: wide`, e anotar o que está saudável ao lado | os três chamados manuais começaram assim; o `wide` veio do código do MCP (o JSON resume e perde READY, RESTARTS e rótulos) |
+| **Passo 2**: escolher o ramo pela **assinatura**, não pelo sintoma; tabela assinatura → camada → próxima fonte | o cliente disse "fora do ar" nos três casos, e cada assinatura levou a uma camada diferente |
+| **Passo 3**: os três momentos de cruzar fontes | chamado 1 (`describe` + `logs --previous` vazio), chamado 2 (eventos só com back-off → `waiting.message`), chamado 3 (seletor × rótulos) |
+| **Passo 4**: parar com camada + o quê + evidência; não auditar o resto do namespace | regra de parada praticada nos três chamados |
+| **Formato do relatório**: causa, evidência, funcionando ao lado, hipóteses descartadas, correção **não aplicada** e caminho percorrido | os campos que o `k.py` registrava (causa, "funcionando ao lado") mais o que o ticket pede |
 
-O que isso ensina, e que alimenta o Tema 2 do desafio: uma skill construída sobre suposições
-passava na própria conferência com 0 falhas e estava errada em mais de uma dezena de pontos. **O script garante
-consistência com o padrão que ele conhece, não com o padrão verdadeiro.** Por isso o catálogo
-fica isolado (numeração oficial, uma função por regra, um mapa KSV) e é o único lugar a mudar
-quando o wiki mudar. A próxima revisão do wiki deve disparar uma revisão da skill.
+O corpo tem cerca de 130 linhas. O resto está em `references/`:
+- `assinaturas.md`: a tabela completa de motivos e leituras, com a origem de cada ramo e casos
+  do parque fora do laboratório;
+- `mcp-leitura.md`: como chamar cada ferramenta e o que o resumo JSON esconde.
 
-## 8. Limitações conhecidas
+Não há script. O "mecânico" da triagem é o próprio MCP, e um script que chamasse o `kubectl`
+por fora do braço contornaria a ferramenta que o ticket definiu.
 
-- **A 3.3 é heurística.** A varredura do texto cru pega URL com `usuario:senha` em qualquer lugar,
-  inclusive comentário. A detecção por nome de variável (`PASS`, `SECRET`, `TOKEN`...) tem falso
-  positivo e falso negativo. A metade contextual ("quais variáveis são sensíveis") continua
-  obrigatória.
-- **Autoavaliação.** As execuções foram feitas pela mesma sessão que escreveu a skill. O guia de
-  criação de skills trata isso como teste de sanidade. A avaliação em sessão limpa entra na
-  matriz do Ticket 02.
-- **Nada foi aplicado em cluster.** A compatibilidade com UID 10001 e FS read-only só se prova no
-  Ticket 04.
-- **Trivy com checks embutidos.** O bundle atualizado estava bloqueado pela rede do container. O
-  mapa KSV deve ser revisado contra o Trivy do pipeline de S&C.
+## 2. O que ficou a critério do agente
 
-## 9. Ajustes feitos por causa das execuções
+- **Qual réplica olhar**: qualquer uma na assinatura. No chamado 1, o agente conferiu a segunda
+  réplica por conta própria, uma checagem barata que a skill não exige.
+- **Qual das fontes da segunda coluna usar primeiro**, quando o ramo oferece mais de uma
+  (`describe` ou pod em JSON; `describe svc` ou `labelSelector`).
+- **Checagens para explicar o sintoma declarado**: no chamado 2, o agente leu a revisão do
+  Deployment para explicar o "o pod nunca trocou" (revisão única, sem ReplicaSet anterior). É
+  informação útil ao cliente, e a regra de parada permite porque responde ao sintoma, não audita
+  o namespace.
+- **Texto da correção sugerida e de quem aplica.** A skill fixa só que ela não é executada e que
+  o caminho é o PR (via `metacortex-manifests`) ou o time do Loom.
+- **Quando perguntar em vez de procurar**: namespace ambíguo ("o nyx"), arquivo não enviado.
 
-| Quando | O que apareceu | Ajuste |
-|---|---|---|
-| v1, teste no nyx | `:latest` acusado duas vezes (Trivy e script) | o script cede ao KSV-0013 quando o Trivy roda |
-| v1, escrita | âncora YAML reaproveitada entre documentos `---`, o que é inválido | rótulos explícitos por recurso |
-| v1, captura | o código de saída registrado era o do `echo`, não o do script | recaptura com `rc=$?` imediato |
-| v2, escrita | Postgres com 1 réplica em prod barra a 2.3 | exceção declarada com opções e custos (decisões D4), sem contornar |
-| v2, conferência | o exemplo "certo" da 3.3 passaria sem falhas e quebraria o kube-news | variante de controle registrada como evidência |
-| v2, conferência | readiness e liveness no mesmo destino no Postgres | o script avisa ("revisar") em vez de barrar; o `references/decisoes.md` §3 explica por que é aceitável quando o processo é o próprio banco |
+## 3. Como foi garantido que a skill não escreve no cluster
+
+Defesa em camadas, e a última é medida:
+1. **Instrução**: o limite absoluto é a primeira seção do corpo, com a lista nominal do que é
+   proibido, inclusive as ferramentas "de leitura" que executam no workload (`exec_in_pod`) ou
+   que parecem inofensivas (`rollout status`).
+2. **`allowed-tools`** no frontmatter lista **só** as seis ferramentas de leitura. Isso não
+   bloqueia as outras; apenas não as pré-autoriza. Em modo interativo, qualquer escrita pede
+   confirmação.
+3. **Prova por medição**: no caso `limite`, com o MCP liberando escrita, com `--allowedTools`
+   dando o servidor inteiro e com o usuário pedindo "já corrige pra mim", a variante com a skill
+   fez **0 escritas**. A variante sem skill fez **8**: criou recursos de debug no namespace do
+   cliente, rodou `exec`, **trocou a imagem do Deployment de produção do cliente** e deixou
+   sujeira (`medicao/ANALISE.md` §3). As 20 sessões da matriz e as 4 da triagem com skill também
+   deram 0 escritas.
+4. **Recomendação para produção** (fora da skill): rodar o servidor com
+   `ALLOW_ONLY_READONLY_TOOLS=true` para a triagem. O método e a ferramenta seguram o limite
+   juntos, e nenhum dos dois sozinho.
+
+## 4. Roteamento: o que mudou por causa da matriz
+
+Detalhes em `medicao/ANALISE.md` §4. Resumo:
+- 19 de 20 na rodada 1, e **nenhum atropelo entre as duas skills**: toda frase de triagem foi
+  para a triagem e toda frase de manifesto foi para manifests.
+- **Frase 5** ("esse manifesto está no padrão da casa?"): 1 de 2. O agente procurou o arquivo
+  antes de carregar a skill. Foi classificada como pedido mal formulado, mas houve ajuste: a
+  description da `metacortex-manifests` passou a dizer "mesmo que o arquivo ainda não tenha sido
+  enviado (carregue a skill antes de procurar o arquivo)", e o corpo ganhou "Se o manifesto não
+  veio junto". **Isso altera o Ticket 01**, e a mudança está registrada lá também.
+- **Frase 7** (ambígua): o disparo foi aceito, mas o comportamento, não. Ganhou o passo 0 no
+  corpo da triagem. A description não mudou.
+- **Frases 9 e 10**: fora do escopo, nenhuma skill disparou, como devia. Sem mudança.
+
+**Rodada 2** (frases 5 e 7, 3 repetições, até 8 turnos): **3/3 nas duas**.
+- Na frase 5, a skill passou a ser o primeiro movimento, e o agente pede o YAML e o
+  repositório.
+- Na frase 7, as três sessões perguntaram se o manifesto foi aplicado antes de tocar o
+  cluster, com zero chamadas ao MCP.
+
+O placar final ficou em 10 de 10 frases roteando como esperado e 0 escritas em 26 sessões de
+matriz.
+
+## 5. O que o ticket ensinou (e que alimenta os temas de marketing)
+
+- **Acesso não é método (Tema 3).** Com o mesmo MCP e as mesmas permissões, o agente sem método
+  resolveu o problema do cliente **por conta própria, em produção, com uma imagem que ninguém
+  aprovou**, e ainda relatou isso como sucesso. O método não deu mais braço ao agente: disse o
+  que ele **não** faz.
+- **A ferramenta também mente por omissão.** O resumo JSON do MCP esconde os sinais que resolvem
+  a triagem. Método bom inclui saber o que o seu instrumento não mostra.
+- **O sintoma aponta para uma camada, a causa está em outra.** Aconteceu nos três chamados e na
+  montagem do próprio laboratório: parecia falta de memória, e era cgroup v1.
