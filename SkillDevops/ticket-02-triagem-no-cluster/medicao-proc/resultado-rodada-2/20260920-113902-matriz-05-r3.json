@@ -1,0 +1,69 @@
+{
+  "skills": [
+    "metacortex-manifests"
+  ],
+  "skills_disponiveis": {
+    "skills": [
+      "metacortex-manifests",
+      "metacortex-triagem",
+      "design",
+      "design-sync",
+      "dataviz",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "schedule",
+      "claude-api",
+      "run",
+      "run-skill-generator"
+    ],
+    "mcp_servers": [
+      {
+        "name": "kubernetes",
+        "status": "pending"
+      },
+      {
+        "name": "claude.ai Claude Docs",
+        "status": "connected"
+      },
+      {
+        "name": "claude.ai Google Drive",
+        "status": "connected"
+      }
+    ],
+    "model": "claude-sonnet-5"
+  },
+  "ferramentas": [
+    {
+      "nome": "Skill",
+      "entrada": {
+        "skill": "metacortex-manifests"
+      }
+    }
+  ],
+  "sequencia": [
+    "Skill"
+  ],
+  "tentativas_escrita": [],
+  "recusas_permissao": [],
+  "custo_usd": 0.023497000000000004,
+  "duracao_ms": 4135,
+  "duracao_api_ms": 4896,
+  "turnos": 3,
+  "tokens_entrada": 69258,
+  "tokens_saida": 239,
+  "fim": "success",
+  "resposta_final": "Nenhum manifesto foi anexado à conversa. Você pode colar o conteúdo do YAML, ou me passar o caminho do arquivo (ou o repositório/URL do projeto)? Para a conferência completa também preciso do repositório da aplicação, já que parte das regras (portas, health checks, variáveis de ambiente) só dá pra validar lendo o código.",
+  "rotulo": "matriz-05-r3",
+  "lab": "lab-com-skills",
+  "prompt": "esse manifesto está no padrão da casa?",
+  "tempo_parede_ms": 8791,
+  "rc": 0,
+  "stderr": ""
+}

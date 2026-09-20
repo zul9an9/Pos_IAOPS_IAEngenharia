@@ -1,0 +1,70 @@
+{
+  "skills": [
+    "metacortex-manifests"
+  ],
+  "skills_disponiveis": {
+    "skills": [
+      "metacortex-manifests",
+      "metacortex-triagem",
+      "design",
+      "design-sync",
+      "dataviz",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "schedule",
+      "claude-api",
+      "run",
+      "run-skill-generator"
+    ],
+    "mcp_servers": [
+      {
+        "name": "kubernetes",
+        "status": "pending"
+      },
+      {
+        "name": "claude.ai Claude Docs",
+        "status": "connected"
+      },
+      {
+        "name": "claude.ai Google Drive",
+        "status": "connected"
+      }
+    ],
+    "model": "claude-sonnet-5"
+  },
+  "ferramentas": [
+    {
+      "nome": "Skill",
+      "entrada": {
+        "skill": "metacortex-manifests",
+        "args": "Verificar se um manifesto está no padrão da casa"
+      }
+    }
+  ],
+  "sequencia": [
+    "Skill"
+  ],
+  "tentativas_escrita": [],
+  "recusas_permissao": [],
+  "custo_usd": 0.025634500000000005,
+  "duracao_ms": 5902,
+  "duracao_api_ms": 6576,
+  "turnos": 3,
+  "tokens_entrada": 69405,
+  "tokens_saida": 417,
+  "fim": "success",
+  "resposta_final": "O usuário perguntou se \"esse manifesto\" está no padrão, mas nenhum arquivo foi anexado ou colado na conversa. Preciso que você me passe:\n\n1. **O caminho do arquivo** (ou cole o conteúdo do YAML aqui), e\n2. **O repositório da aplicação** (caminho local ou URL para clonar) — necessário para conferir as regras contextuais (porta, health checks, variáveis de ambiente etc.), não só a parte mecânica.\n\nSem isso não consigo rodar a conferência completa.",
+  "rotulo": "matriz-05-r2",
+  "lab": "lab-com-skills",
+  "prompt": "esse manifesto está no padrão da casa?",
+  "tempo_parede_ms": 9980,
+  "rc": 0,
+  "stderr": ""
+}
