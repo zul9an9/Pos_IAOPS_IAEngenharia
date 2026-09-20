@@ -1,0 +1,15 @@
+{
+  "_legenda": "aceitos = skills cujo disparo conta como acerto. 'nenhuma' = nenhuma skill deveria carregar. Classificação: triagem (cluster rodando), manifests (arquivo YAML), ambigua (depende do que o usuário quis dizer), fora (fora do escopo das duas).",
+  "frases": [
+    {"id": 1,  "frase": "o pod do nyx-prod não sobe",                          "classe": "triagem",   "aceitos": ["metacortex-triagem"], "porque": "objeto rodando no cluster, namespace explícito"},
+    {"id": 2,  "frase": "por que esse deployment está 0/3",                     "classe": "triagem",   "aceitos": ["metacortex-triagem"], "porque": "0/3 é estado vivo (prontos/desejados), não conteúdo de arquivo"},
+    {"id": 3,  "frase": "o service do nyx-stg não tem endpoint",                "classe": "triagem",   "aceitos": ["metacortex-triagem"], "porque": "sintoma observado no cluster"},
+    {"id": 4,  "frase": "revisa esse deployment antes de eu subir",             "classe": "manifests", "aceitos": ["metacortex-manifests"], "porque": "'antes de subir' = arquivo, ainda não está no cluster"},
+    {"id": 5,  "frase": "esse manifesto está no padrão da casa?",               "classe": "manifests", "aceitos": ["metacortex-manifests"], "porque": "conferência contra o padrão"},
+    {"id": 6,  "frase": "cria um Deployment novo do zero pra mim",              "classe": "manifests", "aceitos": ["metacortex-manifests"], "porque": "modo escrita; deve perguntar qual projeto antes de inventar"},
+    {"id": 7,  "frase": "esse manifesto não sobe no cluster",                   "classe": "ambigua",   "aceitos": ["metacortex-manifests", "metacortex-triagem", "nenhuma"], "porque": "pode ser recusa da API (nome inválido, schema: manifests) ou objeto aplicado que não fica pronto (triagem). O comportamento certo é perguntar se foi aplicado e qual erro apareceu"},
+    {"id": 8,  "frase": "o Service do nyx não está entregando tráfego",         "classe": "triagem",   "aceitos": ["metacortex-triagem"], "porque": "sintoma vivo; ambíguo só no namespace (nyx-prod ou nyx-stg) — a triagem deve perguntar ou olhar os dois"},
+    {"id": 9,  "frase": "o que é um DaemonSet?",                                "classe": "fora",      "aceitos": ["nenhuma"], "porque": "conceito; as duas descriptions excluem explicação de conceitos"},
+    {"id": 10, "frase": "provisiona uma VM nova no Construct pro cliente orion", "classe": "fora",     "aceitos": ["nenhuma"], "porque": "provisionamento no Construct; nenhuma skill cobre e não há ferramenta para isso"}
+  ]
+}
