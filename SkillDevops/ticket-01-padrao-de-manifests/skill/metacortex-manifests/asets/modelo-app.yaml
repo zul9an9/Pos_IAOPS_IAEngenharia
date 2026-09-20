@@ -1,0 +1,108 @@
+# Modelo base — aplicação stateless no Padrão de Manifests da Metacortex (rev. 2026-07-29).
+# Preencha cada <...> com o que saiu da LEITURA DO PROJETO; nenhum placeholder no arquivo final.
+# Rótulos (1.3): name = componente | instance = namespace | part-of = produto | managed-by = platform
+# O Namespace não entra: quem cria é o Construct (1.2). O Secret é criado fora do Git (3.3).
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: <componente>                      # ex.: nyx-api
+  namespace: <cliente>-<ambiente>
+  labels:
+    app.kubernetes.io/name: <componente>
+    app.kubernetes.io/instance: <cliente>-<ambiente>
+    app.kubernetes.io/part-of: <produto>
+    app.kubernetes.io/managed-by: platform
+automountServiceAccountToken: false       # 3.4
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: <componente>
+  namespace: <cliente>-<ambiente>
+  labels:
+    app.kubernetes.io/name: <componente>
+    app.kubernetes.io/instance: <cliente>-<ambiente>
+    app.kubernetes.io/part-of: <produto>
+    app.kubernetes.io/managed-by: platform
+  annotations:
+    metacortex.io/owner: <time>           # 1.5
+    # metacortex.io/runbook: <url>        # 1.5, quando existir
+spec:
+  replicas: 2                             # 2.3 (prod); 1 é aceitável em dev/stg
+  strategy:                               # 2.4 (prod)
+    type: RollingUpdate
+    rollingUpdate: {maxUnavailable: 0, maxSurge: 1}
+  selector:
+    matchLabels:                          # 1.4: idêntico ao template
+      app.kubernetes.io/name: <componente>
+      app.kubernetes.io/instance: <cliente>-<ambiente>
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: <componente>
+        app.kubernetes.io/instance: <cliente>-<ambiente>
+        app.kubernetes.io/part-of: <produto>
+        app.kubernetes.io/managed-by: platform
+    spec:
+      serviceAccountName: <componente>    # 3.5
+      automountServiceAccountToken: false # 3.4
+      # terminationGracePeriodSeconds: <s> # 2.6, se a app precisa de mais de 30s para drenar
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: <papel>                   # 1.6: api | worker | web — nunca app/main/container
+          image: registry.metacortex.io/<cliente>/<imagem>:<versao>   # 3.1 e 3.7
+          ports:
+            - {name: http, containerPort: <porta-do-codigo>}
+          env: []                         # nomes que o CÓDIGO lê; sensíveis via secretKeyRef (3.3)
+          readinessProbe: {}              # 2.2: destino confirmado no código
+          livenessProbe: {}               # 2.2: nunca o mesmo endpoint que checa banco
+          resources:                      # 2.1: limite de memória 1,5x–2x o consumo observado
+            requests: {cpu: <cpu>, memory: <mem>}
+            limits: {cpu: <cpu-lim>, memory: <mem-lim>}
+          securityContext:                # 3.2
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: ["ALL"]}
+          volumeMounts: []                # emptyDir onde a app escreve (3.2)
+      volumes: []
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: <componente>
+  namespace: <cliente>-<ambiente>
+  labels:
+    app.kubernetes.io/name: <componente>
+    app.kubernetes.io/instance: <cliente>-<ambiente>
+    app.kubernetes.io/part-of: <produto>
+    app.kubernetes.io/managed-by: platform
+spec:
+  type: ClusterIP
+  selector:                               # 1.4
+    app.kubernetes.io/name: <componente>
+    app.kubernetes.io/instance: <cliente>-<ambiente>
+  ports:
+    - {name: http, port: 80, targetPort: http}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget                 # 2.5 (prod, réplicas > 1)
+metadata:
+  name: <componente>
+  namespace: <cliente>-<ambiente>
+  labels:
+    app.kubernetes.io/name: <componente>
+    app.kubernetes.io/instance: <cliente>-<ambiente>
+    app.kubernetes.io/part-of: <produto>
+    app.kubernetes.io/managed-by: platform
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: <componente>
+      app.kubernetes.io/instance: <cliente>-<ambiente>
