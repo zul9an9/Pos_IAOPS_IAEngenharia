@@ -1,6 +1,0 @@
-# Supressões do catálogo do Trivy que CONFLITAM com o Padrão de Manifests da Metacortex (rev. 2026-07-29).
-# Cada linha precisa de justificativa.
-
-# 3.7 — o Trivy só considera "confiáveis" registries públicos conhecidos e marca registry.metacortex.io
-# como não confiável: falso positivo. A regra 3.7 é conferida por conferir.py contra o registry interno.
-KSV-0125
