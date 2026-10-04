@@ -1,0 +1,41 @@
+# SOMENTE PARA O LABORATÓRIO: valida o cenário "permissão negada para um tipo
+# de recurso" (tarefa 8.5). Igual ao ClusterRole de exemplo, porém SEM `events`.
+# Aplicado manualmente por quem opera; o painel não aplica nada.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: painel-cluster
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: painel-sem-eventos
+  namespace: painel-cluster
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: painel-cluster-sem-eventos
+rules:
+  - apiGroups: [""]
+    resources: ["namespaces", "pods", "services"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["discovery.k8s.io"]
+    resources: ["endpointslices"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: painel-cluster-sem-eventos
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: painel-cluster-sem-eventos
+subjects:
+  - kind: ServiceAccount
+    name: painel-sem-eventos
+    namespace: painel-cluster
