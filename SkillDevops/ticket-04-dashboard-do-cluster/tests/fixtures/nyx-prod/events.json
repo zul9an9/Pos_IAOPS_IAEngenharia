@@ -1,0 +1,174 @@
+{
+  "apiVersion": "v1",
+  "items": [
+    {
+      "apiVersion": "v1",
+      "count": 107,
+      "eventTime": null,
+      "firstTimestamp": "2026-09-27T14:11:20Z",
+      "involvedObject": {
+        "apiVersion": "v1",
+        "fieldPath": "spec.containers{api}",
+        "kind": "Pod",
+        "name": "nyx-api-7665bb6885-57f5b",
+        "namespace": "nyx-prod",
+        "resourceVersion": "42826",
+        "uid": "7eb49d9b-23c8-4e82-b75c-0f21546eca68"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-09-27T23:01:26Z",
+      "message": "Container image \"fabricioveronez/kube-news:v1\" already present on machine and can be accessed by the pod",
+      "metadata": {
+        "creationTimestamp": "2026-09-27T14:11:20Z",
+        "name": "nyx-api-7665bb6885-57f5b.18d932e3c6d1b414",
+        "namespace": "nyx-prod",
+        "resourceVersion": "91268",
+        "uid": "b8b8e102-b61e-4c0d-948d-770957bd6472"
+      },
+      "reason": "Pulled",
+      "reportingComponent": "kubelet",
+      "reportingInstance": "metacortex-lab-control-plane",
+      "source": {
+        "component": "kubelet",
+        "host": "metacortex-lab-control-plane"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 107,
+      "eventTime": null,
+      "firstTimestamp": "2026-09-27T14:11:20Z",
+      "involvedObject": {
+        "apiVersion": "v1",
+        "fieldPath": "spec.containers{api}",
+        "kind": "Pod",
+        "name": "nyx-api-7665bb6885-57f5b",
+        "namespace": "nyx-prod",
+        "resourceVersion": "42826",
+        "uid": "7eb49d9b-23c8-4e82-b75c-0f21546eca68"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-09-27T23:01:26Z",
+      "message": "Container created",
+      "metadata": {
+        "creationTimestamp": "2026-09-27T23:01:26Z",
+        "name": "nyx-api-7665bb6885-57f5b.18d932e3d4086790",
+        "namespace": "nyx-prod",
+        "resourceVersion": "91269",
+        "uid": "c6c78ef1-c87b-4dd0-8fd6-d4172173b7ab"
+      },
+      "reason": "Created",
+      "reportingComponent": "kubelet",
+      "reportingInstance": "metacortex-lab-control-plane",
+      "source": {
+        "component": "kubelet",
+        "host": "metacortex-lab-control-plane"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 462,
+      "eventTime": null,
+      "firstTimestamp": "2026-09-27T14:11:29Z",
+      "involvedObject": {
+        "apiVersion": "v1",
+        "fieldPath": "spec.containers{api}",
+        "kind": "Pod",
+        "name": "nyx-api-7665bb6885-57f5b",
+        "namespace": "nyx-prod",
+        "resourceVersion": "42826",
+        "uid": "7eb49d9b-23c8-4e82-b75c-0f21546eca68"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-09-27T23:01:30Z",
+      "message": "Back-off restarting failed container api in pod nyx-api-7665bb6885-57f5b_nyx-prod(7eb49d9b-23c8-4e82-b75c-0f21546eca68)",
+      "metadata": {
+        "creationTimestamp": "2026-09-27T14:11:29Z",
+        "name": "nyx-api-7665bb6885-57f5b.18d932e5be6109a4",
+        "namespace": "nyx-prod",
+        "resourceVersion": "91278",
+        "uid": "fafea659-b218-4a7e-96e1-6bd9985257c5"
+      },
+      "reason": "BackOff",
+      "reportingComponent": "kubelet",
+      "reportingInstance": "metacortex-lab-control-plane",
+      "source": {
+        "component": "kubelet",
+        "host": "metacortex-lab-control-plane"
+      },
+      "type": "Warning"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 107,
+      "eventTime": null,
+      "firstTimestamp": "2026-09-27T14:11:19Z",
+      "involvedObject": {
+        "apiVersion": "v1",
+        "fieldPath": "spec.containers{api}",
+        "kind": "Pod",
+        "name": "nyx-api-7665bb6885-rc6vw",
+        "namespace": "nyx-prod",
+        "resourceVersion": "42680",
+        "uid": "f09a3a56-ee4b-436f-83b4-5e0d9f31cd07"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-09-27T22:59:58Z",
+      "message": "Container image \"fabricioveronez/kube-news:v1\" already present on machine and can be accessed by the pod",
+      "metadata": {
+        "creationTimestamp": "2026-09-27T14:11:19Z",
+        "name": "nyx-api-7665bb6885-rc6vw.18d932e365d5e0a4",
+        "namespace": "nyx-prod",
+        "resourceVersion": "91134",
+        "uid": "b7783a26-d0d3-4063-b09e-931f3368367e"
+      },
+      "reason": "Pulled",
+      "reportingComponent": "kubelet",
+      "reportingInstance": "metacortex-lab-control-plane",
+      "source": {
+        "component": "kubelet",
+        "host": "metacortex-lab-control-plane"
+      },
+      "type": "Normal"
+    },
+    {
+      "apiVersion": "v1",
+      "count": 460,
+      "eventTime": null,
+      "firstTimestamp": "2026-09-27T14:11:28Z",
+      "involvedObject": {
+        "apiVersion": "v1",
+        "fieldPath": "spec.containers{api}",
+        "kind": "Pod",
+        "name": "nyx-api-7665bb6885-rc6vw",
+        "namespace": "nyx-prod",
+        "resourceVersion": "42680",
+        "uid": "f09a3a56-ee4b-436f-83b4-5e0d9f31cd07"
+      },
+      "kind": "Event",
+      "lastTimestamp": "2026-09-27T23:02:28Z",
+      "message": "Back-off restarting failed container api in pod nyx-api-7665bb6885-rc6vw_nyx-prod(f09a3a56-ee4b-436f-83b4-5e0d9f31cd07)",
+      "metadata": {
+        "creationTimestamp": "2026-09-27T14:11:28Z",
+        "name": "nyx-api-7665bb6885-rc6vw.18d932e5828faa34",
+        "namespace": "nyx-prod",
+        "resourceVersion": "91359",
+        "uid": "90a3c5a3-4657-433c-8148-9005fabc986d"
+      },
+      "reason": "BackOff",
+      "reportingComponent": "kubelet",
+      "reportingInstance": "metacortex-lab-control-plane",
+      "source": {
+        "component": "kubelet",
+        "host": "metacortex-lab-control-plane"
+      },
+      "type": "Warning"
+    }
+  ],
+  "kind": "List",
+  "metadata": {
+    "resourceVersion": ""
+  }
+}
