@@ -1,0 +1,85 @@
+{
+  "apiVersion": "v1",
+  "items": [
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "annotations": {},
+        "creationTimestamp": "2026-09-20T13:25:15Z",
+        "name": "nyx-api",
+        "namespace": "nyx-stg",
+        "resourceVersion": "19293",
+        "uid": "8bfb188f-c549-4230-beaf-ce6e49fb36b1"
+      },
+      "spec": {
+        "clusterIP": "10.96.108.99",
+        "clusterIPs": [
+          "10.96.108.99"
+        ],
+        "internalTrafficPolicy": "Cluster",
+        "ipFamilies": [
+          "IPv4"
+        ],
+        "ipFamilyPolicy": "SingleStack",
+        "ports": [
+          {
+            "port": 80,
+            "protocol": "TCP",
+            "targetPort": 8080
+          }
+        ],
+        "selector": {
+          "app": "nyx-api"
+        },
+        "sessionAffinity": "None",
+        "type": "ClusterIP"
+      },
+      "status": {
+        "loadBalancer": {}
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "annotations": {},
+        "creationTimestamp": "2026-09-20T13:25:15Z",
+        "name": "nyx-postgres",
+        "namespace": "nyx-stg",
+        "resourceVersion": "19274",
+        "uid": "a3dba7ee-acc7-49e9-a414-dc7ca37749d1"
+      },
+      "spec": {
+        "clusterIP": "10.96.41.199",
+        "clusterIPs": [
+          "10.96.41.199"
+        ],
+        "internalTrafficPolicy": "Cluster",
+        "ipFamilies": [
+          "IPv4"
+        ],
+        "ipFamilyPolicy": "SingleStack",
+        "ports": [
+          {
+            "port": 5432,
+            "protocol": "TCP",
+            "targetPort": 5432
+          }
+        ],
+        "selector": {
+          "app": "nyx-postgres"
+        },
+        "sessionAffinity": "None",
+        "type": "ClusterIP"
+      },
+      "status": {
+        "loadBalancer": {}
+      }
+    }
+  ],
+  "kind": "List",
+  "metadata": {
+    "resourceVersion": ""
+  }
+}
