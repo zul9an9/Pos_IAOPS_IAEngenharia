@@ -111,4 +111,3 @@ bash tests/fixtures/capturar.sh
 | Manifests dos workloads gerados pela skill do Ticket 01 | `manifests-lab/` |
 | Registro do comportamento das duas skills | [`REGISTRO-SKILLS.md`](REGISTRO-SKILLS.md) |
 | Curadoria e justificativa das decisões abertas | [`CURADORIA.md`](CURADORIA.md) |
-
