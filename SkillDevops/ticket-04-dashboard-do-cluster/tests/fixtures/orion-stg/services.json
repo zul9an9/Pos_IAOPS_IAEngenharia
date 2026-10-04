@@ -1,0 +1,85 @@
+{
+  "apiVersion": "v1",
+  "items": [
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "annotations": {},
+        "creationTimestamp": "2026-09-20T13:25:15Z",
+        "name": "orion-postgres",
+        "namespace": "orion-stg",
+        "resourceVersion": "19226",
+        "uid": "f43d41c1-cc9d-456d-8f12-7ea85723ec45"
+      },
+      "spec": {
+        "clusterIP": "10.96.73.28",
+        "clusterIPs": [
+          "10.96.73.28"
+        ],
+        "internalTrafficPolicy": "Cluster",
+        "ipFamilies": [
+          "IPv4"
+        ],
+        "ipFamilyPolicy": "SingleStack",
+        "ports": [
+          {
+            "port": 5432,
+            "protocol": "TCP",
+            "targetPort": 5432
+          }
+        ],
+        "selector": {
+          "app": "orion-postgres"
+        },
+        "sessionAffinity": "None",
+        "type": "ClusterIP"
+      },
+      "status": {
+        "loadBalancer": {}
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "annotations": {},
+        "creationTimestamp": "2026-09-20T13:25:15Z",
+        "name": "orion-web",
+        "namespace": "orion-stg",
+        "resourceVersion": "19247",
+        "uid": "00828dd6-8148-4f81-8277-b34f29967812"
+      },
+      "spec": {
+        "clusterIP": "10.96.155.81",
+        "clusterIPs": [
+          "10.96.155.81"
+        ],
+        "internalTrafficPolicy": "Cluster",
+        "ipFamilies": [
+          "IPv4"
+        ],
+        "ipFamilyPolicy": "SingleStack",
+        "ports": [
+          {
+            "port": 80,
+            "protocol": "TCP",
+            "targetPort": 5000
+          }
+        ],
+        "selector": {
+          "app": "orion-web"
+        },
+        "sessionAffinity": "None",
+        "type": "ClusterIP"
+      },
+      "status": {
+        "loadBalancer": {}
+      }
+    }
+  ],
+  "kind": "List",
+  "metadata": {
+    "resourceVersion": ""
+  }
+}

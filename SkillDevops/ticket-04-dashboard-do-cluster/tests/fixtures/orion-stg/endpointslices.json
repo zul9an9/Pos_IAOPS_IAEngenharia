@@ -1,0 +1,157 @@
+{
+  "apiVersion": "v1",
+  "items": [
+    {
+      "addressType": "IPv4",
+      "apiVersion": "discovery.k8s.io/v1",
+      "endpoints": [
+        {
+          "addresses": [
+            "10.244.0.13"
+          ],
+          "conditions": {
+            "ready": true,
+            "serving": true,
+            "terminating": false
+          },
+          "nodeName": "metacortex-lab-control-plane",
+          "targetRef": {
+            "kind": "Pod",
+            "name": "orion-postgres-5595f8958d-568nj",
+            "namespace": "orion-stg",
+            "uid": "5e3836c1-098d-432f-8ea4-83a65cd019d7"
+          }
+        }
+      ],
+      "kind": "EndpointSlice",
+      "metadata": {
+        "annotations": {
+          "endpoints.kubernetes.io/last-change-trigger-time": "2026-09-20T13:25:15Z"
+        },
+        "creationTimestamp": "2026-09-20T13:25:15Z",
+        "generateName": "orion-postgres-",
+        "generation": 3,
+        "labels": {
+          "endpointslice.kubernetes.io/managed-by": "endpointslice-controller.k8s.io",
+          "kubernetes.io/service-name": "orion-postgres"
+        },
+        "name": "orion-postgres-dkfjl",
+        "namespace": "orion-stg",
+        "ownerReferences": [
+          {
+            "apiVersion": "v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "Service",
+            "name": "orion-postgres",
+            "uid": "f43d41c1-cc9d-456d-8f12-7ea85723ec45"
+          }
+        ],
+        "resourceVersion": "43116",
+        "uid": "b0f224b8-0089-482c-b98d-68d71dca3bfc"
+      },
+      "ports": [
+        {
+          "name": "",
+          "port": 5432,
+          "protocol": "TCP"
+        }
+      ]
+    },
+    {
+      "addressType": "IPv4",
+      "apiVersion": "discovery.k8s.io/v1",
+      "endpoints": [
+        {
+          "addresses": [
+            "10.244.0.10"
+          ],
+          "conditions": {
+            "ready": false,
+            "serving": false,
+            "terminating": false
+          },
+          "nodeName": "metacortex-lab-control-plane",
+          "targetRef": {
+            "kind": "Pod",
+            "name": "orion-web-67888d986c-l4q7k",
+            "namespace": "orion-stg",
+            "uid": "0d7d4e9d-a5be-47f3-8739-40b03398e888"
+          }
+        },
+        {
+          "addresses": [
+            "10.244.0.8"
+          ],
+          "conditions": {
+            "ready": false,
+            "serving": false,
+            "terminating": false
+          },
+          "nodeName": "metacortex-lab-control-plane",
+          "targetRef": {
+            "kind": "Pod",
+            "name": "orion-web-67888d986c-6mvdb",
+            "namespace": "orion-stg",
+            "uid": "0bd42559-b377-4180-b536-8817291f0832"
+          }
+        },
+        {
+          "addresses": [
+            "10.244.0.9"
+          ],
+          "conditions": {
+            "ready": false,
+            "serving": false,
+            "terminating": false
+          },
+          "nodeName": "metacortex-lab-control-plane",
+          "targetRef": {
+            "kind": "Pod",
+            "name": "orion-web-67888d986c-xttxt",
+            "namespace": "orion-stg",
+            "uid": "4422818f-6cab-4afe-a2e8-2b1346690228"
+          }
+        }
+      ],
+      "kind": "EndpointSlice",
+      "metadata": {
+        "annotations": {
+          "endpoints.kubernetes.io/last-change-trigger-time": "2026-09-20T13:25:15Z"
+        },
+        "creationTimestamp": "2026-09-20T13:25:15Z",
+        "generateName": "orion-web-",
+        "generation": 5,
+        "labels": {
+          "endpointslice.kubernetes.io/managed-by": "endpointslice-controller.k8s.io",
+          "kubernetes.io/service-name": "orion-web"
+        },
+        "name": "orion-web-rs7xg",
+        "namespace": "orion-stg",
+        "ownerReferences": [
+          {
+            "apiVersion": "v1",
+            "blockOwnerDeletion": true,
+            "controller": true,
+            "kind": "Service",
+            "name": "orion-web",
+            "uid": "00828dd6-8148-4f81-8277-b34f29967812"
+          }
+        ],
+        "resourceVersion": "43114",
+        "uid": "ddde4a33-c691-4b94-be29-48a16ea41363"
+      },
+      "ports": [
+        {
+          "name": "",
+          "port": 5000,
+          "protocol": "TCP"
+        }
+      ]
+    }
+  ],
+  "kind": "List",
+  "metadata": {
+    "resourceVersion": ""
+  }
+}
