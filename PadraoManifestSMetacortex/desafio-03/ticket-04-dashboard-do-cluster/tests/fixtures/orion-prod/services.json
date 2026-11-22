@@ -1,0 +1,107 @@
+{
+  "apiVersion": "v1",
+  "items": [
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "annotations": {},
+        "creationTimestamp": "2026-09-27T14:48:35Z",
+        "labels": {
+          "app.kubernetes.io/component": "app",
+          "app.kubernetes.io/instance": "orion-prod",
+          "app.kubernetes.io/managed-by": "metacortex-platform",
+          "app.kubernetes.io/name": "fake-shop",
+          "app.kubernetes.io/part-of": "fake-shop",
+          "metacortex.io/ambiente": "prod",
+          "metacortex.io/cliente": "orion"
+        },
+        "name": "orion-fake-shop",
+        "namespace": "orion-prod",
+        "resourceVersion": "46701",
+        "uid": "838a5186-d8a8-49fb-9bc8-3a9f46d72e96"
+      },
+      "spec": {
+        "clusterIP": "10.96.162.198",
+        "clusterIPs": [
+          "10.96.162.198"
+        ],
+        "internalTrafficPolicy": "Cluster",
+        "ipFamilies": [
+          "IPv4"
+        ],
+        "ipFamilyPolicy": "SingleStack",
+        "ports": [
+          {
+            "name": "http",
+            "port": 80,
+            "protocol": "TCP",
+            "targetPort": "http"
+          }
+        ],
+        "selector": {
+          "app.kubernetes.io/instance": "orion-prod",
+          "app.kubernetes.io/name": "fake-shop"
+        },
+        "sessionAffinity": "None",
+        "type": "ClusterIP"
+      },
+      "status": {
+        "loadBalancer": {}
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {
+        "annotations": {},
+        "creationTimestamp": "2026-09-27T14:48:35Z",
+        "labels": {
+          "app.kubernetes.io/component": "database",
+          "app.kubernetes.io/instance": "orion-prod",
+          "app.kubernetes.io/managed-by": "metacortex-platform",
+          "app.kubernetes.io/name": "postgresql",
+          "app.kubernetes.io/part-of": "fake-shop",
+          "metacortex.io/ambiente": "prod",
+          "metacortex.io/cliente": "orion"
+        },
+        "name": "orion-fake-shop-db",
+        "namespace": "orion-prod",
+        "resourceVersion": "46727",
+        "uid": "6cf2acbd-9dec-4496-b24d-447a3d8e59f8"
+      },
+      "spec": {
+        "clusterIP": "None",
+        "clusterIPs": [
+          "None"
+        ],
+        "internalTrafficPolicy": "Cluster",
+        "ipFamilies": [
+          "IPv4"
+        ],
+        "ipFamilyPolicy": "SingleStack",
+        "ports": [
+          {
+            "name": "postgresql",
+            "port": 5432,
+            "protocol": "TCP",
+            "targetPort": "postgresql"
+          }
+        ],
+        "selector": {
+          "app.kubernetes.io/instance": "orion-prod",
+          "app.kubernetes.io/name": "postgresql"
+        },
+        "sessionAffinity": "None",
+        "type": "ClusterIP"
+      },
+      "status": {
+        "loadBalancer": {}
+      }
+    }
+  ],
+  "kind": "List",
+  "metadata": {
+    "resourceVersion": ""
+  }
+}
