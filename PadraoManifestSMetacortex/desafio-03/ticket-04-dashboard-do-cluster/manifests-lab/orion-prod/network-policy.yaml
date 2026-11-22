@@ -1,0 +1,89 @@
+# Faz parte da mesma adaptação de laboratório de fake-shop-app.yaml / fake-shop-db.yaml
+# (registry.metacortex.io substituído por imagens públicas). Este arquivo não referencia
+# imagem, mas fica no mesmo namespace orion-prod.
+#
+# Negação padrão + liberações explícitas (MC-SG-06). A origem real do tráfego de entrada do
+# fake-shop (Ingress Controller do cluster) não é conhecida neste laboratório — a liberação
+# abaixo permite qualquer origem na porta 5000. Recomendação ao cliente: restringir a
+# origem ao namespace/label do Ingress Controller assim que ele existir.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: orion-default-deny
+  namespace: orion-prod
+  labels:
+    app.kubernetes.io/name: fake-shop
+    app.kubernetes.io/instance: orion-prod
+    app.kubernetes.io/component: network-policy
+    app.kubernetes.io/part-of: fake-shop
+    app.kubernetes.io/managed-by: metacortex-platform
+    metacortex.io/cliente: orion
+    metacortex.io/ambiente: prod
+spec:
+  podSelector: {}
+  policyTypes: ["Ingress", "Egress"]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: orion-fake-shop-allow
+  namespace: orion-prod
+  labels:
+    app.kubernetes.io/name: fake-shop
+    app.kubernetes.io/instance: orion-prod
+    app.kubernetes.io/component: network-policy
+    app.kubernetes.io/part-of: fake-shop
+    app.kubernetes.io/managed-by: metacortex-platform
+    metacortex.io/cliente: orion
+    metacortex.io/ambiente: prod
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: fake-shop
+      app.kubernetes.io/instance: orion-prod
+  policyTypes: ["Ingress", "Egress"]
+  ingress:
+    # origem não restrita: Ingress Controller do laboratório ainda não está mapeado
+    - ports:
+        - {protocol: TCP, port: 5000}
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: postgresql
+              app.kubernetes.io/instance: orion-prod
+      ports:
+        - {protocol: TCP, port: 5432}
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - {protocol: UDP, port: 53}
+        - {protocol: TCP, port: 53}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: orion-fake-shop-db-allow
+  namespace: orion-prod
+  labels:
+    app.kubernetes.io/name: fake-shop
+    app.kubernetes.io/instance: orion-prod
+    app.kubernetes.io/component: network-policy
+    app.kubernetes.io/part-of: fake-shop
+    app.kubernetes.io/managed-by: metacortex-platform
+    metacortex.io/cliente: orion
+    metacortex.io/ambiente: prod
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: postgresql
+      app.kubernetes.io/instance: orion-prod
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: fake-shop
+              app.kubernetes.io/instance: orion-prod
+      ports:
+        - {protocol: TCP, port: 5432}

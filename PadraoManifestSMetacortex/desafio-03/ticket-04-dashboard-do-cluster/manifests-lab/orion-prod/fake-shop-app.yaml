@@ -1,0 +1,227 @@
+# Adaptação de laboratório (cluster kind, sem acesso ao registry interno):
+#   registry.metacortex.io/orion/fake-shop  ->  fabricioveronez/fake-shop:v1
+# Repositório de origem: https://github.com/KubeDev/fake-shop (mesmo autor da imagem pública).
+# Fixado por digest (e não só pela tag "v1") porque a tag do Docker Hub não é semver
+# (não bate no regex de imutabilidade do padrão) — o digest é a forma de imutabilidade
+# que o padrão aceita como alternativa (MC-ID-05). Fora isso, o padrão da casa segue normal.
+# `conferir.py` vai acusar MC-ID-05 pelo prefixo do registry (registry.metacortex.io ausente):
+# falha esperada e aceita neste laboratório, não uma falha real de padrão.
+#
+# Migração: o entrypoint original da imagem (`entrypoint.sh`) roda
+# `python -m flask db upgrade` e, em seguida, o gunicorn, sem `set -e` — se a migração
+# falhar, o script continua e sobe o servidor contra o esquema velho. Aqui a migração foi
+# extraída para um initContainer (mesma imagem, mesmo comando) e o container principal
+# sobrescreve o `command` para subir só o gunicorn (decisoes.md #2, opção padrão). Com isso,
+# falha de migração impede o pod de subir e fica visível no `kubectl describe`.
+# Com várias réplicas os initContainers podem rodar a migração em paralelo; Flask-Migrate
+# (Alembic) tem tabela de versão, então quem perde a corrida falha, o pod reinicia e na
+# nova tentativa encontra o esquema já atualizado.
+#
+# Achado de código (não corrigido aqui, é do cliente): `app.secret_key = 'supersecretkey'`
+# está hardcoded em src/index.py — recomenda-se mover para variável de ambiente/Secret.
+#
+# Sem endpoint de saúde dedicado. Usado /metrics (Prometheus, só processo) como liveness,
+# e "/" (consulta Product.query.all(), toca o banco) como readiness — decisoes.md #1,
+# opções 1 e 2.
+#
+# Correção pós-triagem (Init:CreateContainerConfigError): o pod só declarava
+# `runAsNonRoot: true`, sem `runAsUser`. A imagem roda com um usuário não numérico ("app"),
+# e o kubelet não consegue confirmar sozinho que um nome não numérico é não-root — por isso
+# recusava criar o container. Inspecionado o /etc/passwd da própria imagem via containerd no
+# nó kind (`ctr -n k8s.io run --rm --user 0:0 <imagem> cat /etc/passwd`, só leitura, sem
+# alterar nada no cluster): `app:x:10001:10001::/home/app:/bin/sh`. UID e GID reais são
+# 10001:10001 — coincide com o UID 10001 que o padrão já sugere como default, então não há
+# necessidade de justificar desvio: usei o valor real da imagem, que aqui é o mesmo do padrão.
+#
+# Correção pós-triagem (CrashLoopBackOff no initContainer db-migrate): log do container
+# mostra `OSError: [Errno 30] Read-only file system: '/tmp/metrics/gauge_max_1.db'`.
+# `python -m flask db upgrade` importa o módulo `index.py` (é assim que o Flask CLI descobre
+# o app), e esse módulo instancia `GunicornPrometheusMetrics(app)` incondicionalmente no
+# import — o mesmo efeito colateral de escrita do container principal (decisoes.md #5,
+# PROMETHEUS_MULTIPROC_DIR), só que o db-migrate não tinha os mesmos volumeMounts de
+# /tmp e /tmp/metrics. Corrigido montando os dois emptyDir (tmp, metrics) também no
+# initContainer, iguais aos do container app.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: orion-fake-shop
+  namespace: orion-prod
+  labels:
+    app.kubernetes.io/name: fake-shop
+    app.kubernetes.io/instance: orion-prod
+    app.kubernetes.io/component: app
+    app.kubernetes.io/part-of: fake-shop
+    app.kubernetes.io/managed-by: metacortex-platform
+    metacortex.io/cliente: orion
+    metacortex.io/ambiente: prod
+automountServiceAccountToken: false
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orion-fake-shop
+  namespace: orion-prod
+  labels:
+    app.kubernetes.io/name: fake-shop
+    app.kubernetes.io/instance: orion-prod
+    app.kubernetes.io/component: app
+    app.kubernetes.io/part-of: fake-shop
+    app.kubernetes.io/managed-by: metacortex-platform
+    metacortex.io/cliente: orion
+    metacortex.io/ambiente: prod
+  annotations:
+    # placeholder — substituir pelo time/canal real que é dono deste workload
+    metacortex.io/owner: "<definir-com-o-cliente-orion>"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: fake-shop
+      app.kubernetes.io/instance: orion-prod
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: fake-shop
+        app.kubernetes.io/instance: orion-prod
+        app.kubernetes.io/component: app
+        app.kubernetes.io/part-of: fake-shop
+        app.kubernetes.io/managed-by: metacortex-platform
+        metacortex.io/cliente: orion
+        metacortex.io/ambiente: prod
+    spec:
+      serviceAccountName: orion-fake-shop
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile: {type: RuntimeDefault}
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: fake-shop
+              app.kubernetes.io/instance: orion-prod
+      initContainers:
+        - name: db-migrate
+          image: fabricioveronez/fake-shop:v1@sha256:07db4334f5f2bb330f0f342a81ad203bb21b770b8d7a27c90edb2261fea34e2f
+          command: ["python", "-m", "flask", "db", "upgrade"]
+          env:
+            - name: FLASK_APP
+              value: index.py
+            - name: DB_HOST
+              value: orion-fake-shop-db
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: ecommerce
+            - name: DB_USER
+              valueFrom: {secretKeyRef: {name: orion-fake-shop-db, key: username}}
+            - name: DB_PASSWORD
+              valueFrom: {secretKeyRef: {name: orion-fake-shop-db, key: password}}
+          resources:
+            requests: {cpu: 50m, memory: 64Mi}
+            limits: {memory: 128Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            capabilities: {drop: [ALL]}
+          volumeMounts:
+            - {name: tmp, mountPath: /tmp}
+            - {name: metrics, mountPath: /tmp/metrics}
+      containers:
+        - name: app
+          image: fabricioveronez/fake-shop:v1@sha256:07db4334f5f2bb330f0f342a81ad203bb21b770b8d7a27c90edb2261fea34e2f
+          command: ["python", "-m", "gunicorn", "--bind", "0.0.0.0:5000", "index:app"]
+          ports:
+            - {name: http, containerPort: 5000}
+          env:
+            - name: FLASK_APP
+              value: index.py
+            - name: DB_HOST
+              value: orion-fake-shop-db
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: ecommerce
+            - name: DB_USER
+              valueFrom: {secretKeyRef: {name: orion-fake-shop-db, key: username}}
+            - name: DB_PASSWORD
+              valueFrom: {secretKeyRef: {name: orion-fake-shop-db, key: password}}
+            - name: PROMETHEUS_MULTIPROC_DIR
+              value: /tmp/metrics
+          readinessProbe:
+            httpGet: {path: /, port: http}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet: {path: /metrics, port: http}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {memory: 256Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            capabilities: {drop: [ALL]}
+          volumeMounts:
+            - {name: tmp, mountPath: /tmp}
+            - {name: metrics, mountPath: /tmp/metrics}
+      volumes:
+        - {name: tmp, emptyDir: {}}
+        - {name: metrics, emptyDir: {}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orion-fake-shop
+  namespace: orion-prod
+  labels:
+    app.kubernetes.io/name: fake-shop
+    app.kubernetes.io/instance: orion-prod
+    app.kubernetes.io/component: app
+    app.kubernetes.io/part-of: fake-shop
+    app.kubernetes.io/managed-by: metacortex-platform
+    metacortex.io/cliente: orion
+    metacortex.io/ambiente: prod
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: fake-shop
+    app.kubernetes.io/instance: orion-prod
+  ports:
+    - {name: http, port: 80, targetPort: http}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: orion-fake-shop
+  namespace: orion-prod
+  labels:
+    app.kubernetes.io/name: fake-shop
+    app.kubernetes.io/instance: orion-prod
+    app.kubernetes.io/component: app
+    app.kubernetes.io/part-of: fake-shop
+    app.kubernetes.io/managed-by: metacortex-platform
+    metacortex.io/cliente: orion
+    metacortex.io/ambiente: prod
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: fake-shop
+      app.kubernetes.io/instance: orion-prod
