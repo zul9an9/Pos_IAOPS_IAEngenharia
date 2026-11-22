@@ -1,0 +1,202 @@
+# Adaptação de laboratório (cluster kind, sem acesso ao registry interno):
+#   registry.metacortex.io/helio/encontros-tech  ->  fabricioveronez/encontros-tech-labs:d2538f3
+# Repositório de origem: https://github.com/KubeDev/encontros-tech. O Dockerfile e o
+# docker-compose.yml originais foram removidos do repositório (commit "Removendo Docker"),
+# mas o commit anterior mostra que a imagem publicada no Docker Hub para este projeto é do
+# mesmo autor do fake-shop.
+#
+# Correção pós-triagem (ImagePullBackOff): o digest antes fixado (tag v1) resolve para um
+# índice OCI que só lista `linux/arm64` (mais uma attestation "unknown") — sem `linux/amd64`,
+# que é a arquitetura do nó do cluster kind (confirmado com `kubectl get nodes -o wide`).
+# Verificado o índice de manifesto de cada tag publicada no mesmo repositório antes de trocar:
+#   - v1, c542042                         -> só linux/arm64 (mesmo problema)
+#   - v2, v3, v4, v20, v30                -> só linux/amd64, mas a imagem não define usuário
+#                                            (roda como root por padrão) — trocaria o
+#                                            ImagePullBackOff por um novo CreateContainerConfigError,
+#                                            pelo mesmo motivo do fake-shop
+#   - d2538f3, e5b83aa, 18f2158, 9c575e8,
+#     4fbbc2b                             -> linux/amd64 E linux/arm64, e JÁ rodam como usuário
+#                                            não-root dedicado
+# Escolhida a tag `d2538f3`: multi-arquitetura (cobre o nó amd64 deste laboratório e arm64) e
+# com o mesmo padrão de usuário não-root do fake-shop. Confirmado por inspeção da própria
+# imagem via containerd no nó kind (`ctr -n k8s.io run --rm --user 0:0 <imagem> cat
+# /etc/passwd`, só leitura): `app:x:10001:10001::/home/app:/usr/sbin/nologin` — mesmo UID/GID
+# 10001 do padrão, e os arquivos em /app já pertencem a app:app (confirmado com `ls -la /app`
+# rodando como --user 10001:10001, e `gunicorn --version` executando sem erro). O CMD dessa
+# tag também mudou para `gunicorn -w 2 --preload -b 0.0.0.0:8000 --access-logfile - main:app`
+# (preservado como padrão da imagem, sem overrideo de `command` aqui).
+#
+# Ressalva: `d2538f3` é uma tag de hash de commit, não uma release semver do mesmo projeto
+# "v1" que foi avaliado originalmente — o repositório público não expõe mais o Dockerfile/CI
+# para comparar o conteúdo linha a linha. Pela estrutura de arquivos em /app (main.py, core/,
+# routers/, models/, schemas/, services/, templates/, static/) e pelo CMD apontando para o
+# mesmo `main:app`, é o mesmo projeto com um Dockerfile mais recente e mais restrito
+# (usuário não-root, multi-arch). Recomenda-se ao cliente confirmar com o autor da imagem se
+# há uma tag semver equivalente, ou publicar uma.
+#
+# Fixado por digest do índice multi-arch (e não só pela tag) pelo mesmo motivo de sempre:
+# tag não é semver — o digest é a forma de imutabilidade que o padrão aceita como alternativa
+# (MC-ID-05). `conferir.py` vai acusar MC-ID-05 pelo prefixo do registry: falha esperada e
+# aceita neste laboratório, não uma falha real de padrão.
+#
+# Sem endpoint de saúde dedicado. Usado /metrics (prometheus_flask_exporter, só processo)
+# como liveness, e "/api/events/" (toca o banco) como readiness — decisoes.md #1, opções 1 e 2.
+#
+# Achado de código (não corrigido aqui, é do cliente):
+#   - src/main.py define `app.config['SECRET_KEY'] = 'your-secret-key-here'` hardcoded
+#     (comentário "TODO: Move to settings" no próprio código) — mover para Secret.
+#   - src/main.py roda `event_model.Base.metadata.create_all(bind=engine)` incondicionalmente
+#     no import do módulo, ou seja, dentro do processo principal, e a imagem pública não
+#     expõe um subcomando separado para isso — não há como mover para initContainer/Job sem
+#     alterar o código (MC-RS-07 fica com exceção de fato, é gap de aplicação, não de
+#     manifesto). Com o `--preload` do gunicorn nesta tag, o módulo é importado uma única vez
+#     no processo master antes do fork dos workers — o risco de corrida do create_all() já
+#     não é mais "por worker" (era o caso com a tag v1, -w 4 sem --preload), só entre réplicas
+#     concorrentes no primeiro deploy; create_all() é idempotente, então quem perde a corrida
+#     falha ao importar o módulo, o gunicorn reinicia, e na nova tentativa o schema já existe.
+#     Autolimitado, mas vale reportar ao cliente: mover a criação de schema para fora do
+#     import do módulo.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: helio-encontros-tech
+  namespace: helio-prod
+  labels:
+    app.kubernetes.io/name: encontros-tech
+    app.kubernetes.io/instance: helio-prod
+    app.kubernetes.io/component: app
+    app.kubernetes.io/part-of: encontros-tech
+    app.kubernetes.io/managed-by: metacortex-platform
+    metacortex.io/cliente: helio
+    metacortex.io/ambiente: prod
+automountServiceAccountToken: false
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helio-encontros-tech
+  namespace: helio-prod
+  labels:
+    app.kubernetes.io/name: encontros-tech
+    app.kubernetes.io/instance: helio-prod
+    app.kubernetes.io/component: app
+    app.kubernetes.io/part-of: encontros-tech
+    app.kubernetes.io/managed-by: metacortex-platform
+    metacortex.io/cliente: helio
+    metacortex.io/ambiente: prod
+  annotations:
+    metacortex.io/owner: "<definir-com-o-cliente-helio>"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: encontros-tech
+      app.kubernetes.io/instance: helio-prod
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: encontros-tech
+        app.kubernetes.io/instance: helio-prod
+        app.kubernetes.io/component: app
+        app.kubernetes.io/part-of: encontros-tech
+        app.kubernetes.io/managed-by: metacortex-platform
+        metacortex.io/cliente: helio
+        metacortex.io/ambiente: prod
+    spec:
+      serviceAccountName: helio-encontros-tech
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile: {type: RuntimeDefault}
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: encontros-tech
+              app.kubernetes.io/instance: helio-prod
+      containers:
+        - name: app
+          image: fabricioveronez/encontros-tech-labs:d2538f3@sha256:6bad13d68e0d6d1b9349b26f5276d6502e4edfa1dc11587eb879fc73d7eaba16
+          ports:
+            - {name: http, containerPort: 8000}
+          env:
+            - name: DATABASE_URL
+              valueFrom: {secretKeyRef: {name: helio-encontros-tech-db, key: DATABASE_URL}}
+            - name: DEBUG
+              value: "false"
+            - name: LOG_LEVEL
+              value: INFO
+            - name: PROMETHEUS_MULTIPROC_DIR
+              value: /tmp/prometheus_multiproc
+          readinessProbe:
+            httpGet: {path: /api/events/, port: http}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet: {path: /metrics, port: http}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {memory: 256Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            capabilities: {drop: [ALL]}
+          volumeMounts:
+            - {name: tmp, mountPath: /tmp}
+      volumes:
+        - {name: tmp, emptyDir: {}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: helio-encontros-tech
+  namespace: helio-prod
+  labels:
+    app.kubernetes.io/name: encontros-tech
+    app.kubernetes.io/instance: helio-prod
+    app.kubernetes.io/component: app
+    app.kubernetes.io/part-of: encontros-tech
+    app.kubernetes.io/managed-by: metacortex-platform
+    metacortex.io/cliente: helio
+    metacortex.io/ambiente: prod
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: encontros-tech
+    app.kubernetes.io/instance: helio-prod
+  ports:
+    - {name: http, port: 80, targetPort: http}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: helio-encontros-tech
+  namespace: helio-prod
+  labels:
+    app.kubernetes.io/name: encontros-tech
+    app.kubernetes.io/instance: helio-prod
+    app.kubernetes.io/component: app
+    app.kubernetes.io/part-of: encontros-tech
+    app.kubernetes.io/managed-by: metacortex-platform
+    metacortex.io/cliente: helio
+    metacortex.io/ambiente: prod
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: encontros-tech
+      app.kubernetes.io/instance: helio-prod

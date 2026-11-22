@@ -1,0 +1,89 @@
+# Faz parte da mesma adaptação de laboratório de encontros-tech-app.yaml /
+# encontros-tech-db.yaml (registry.metacortex.io substituído por imagens públicas). Este
+# arquivo não referencia imagem, mas fica no mesmo namespace helio-prod.
+#
+# Negação padrão + liberações explícitas (MC-SG-06). A origem real do tráfego de entrada do
+# encontros-tech (Ingress Controller do cluster) não é conhecida neste laboratório — a
+# liberação abaixo permite qualquer origem na porta 8000. Recomendação ao cliente: restringir
+# a origem ao namespace/label do Ingress Controller assim que ele existir.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: helio-default-deny
+  namespace: helio-prod
+  labels:
+    app.kubernetes.io/name: encontros-tech
+    app.kubernetes.io/instance: helio-prod
+    app.kubernetes.io/component: network-policy
+    app.kubernetes.io/part-of: encontros-tech
+    app.kubernetes.io/managed-by: metacortex-platform
+    metacortex.io/cliente: helio
+    metacortex.io/ambiente: prod
+spec:
+  podSelector: {}
+  policyTypes: ["Ingress", "Egress"]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: helio-encontros-tech-allow
+  namespace: helio-prod
+  labels:
+    app.kubernetes.io/name: encontros-tech
+    app.kubernetes.io/instance: helio-prod
+    app.kubernetes.io/component: network-policy
+    app.kubernetes.io/part-of: encontros-tech
+    app.kubernetes.io/managed-by: metacortex-platform
+    metacortex.io/cliente: helio
+    metacortex.io/ambiente: prod
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: encontros-tech
+      app.kubernetes.io/instance: helio-prod
+  policyTypes: ["Ingress", "Egress"]
+  ingress:
+    # origem não restrita: Ingress Controller do laboratório ainda não está mapeado
+    - ports:
+        - {protocol: TCP, port: 8000}
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: postgresql
+              app.kubernetes.io/instance: helio-prod
+      ports:
+        - {protocol: TCP, port: 5432}
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - {protocol: UDP, port: 53}
+        - {protocol: TCP, port: 53}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: helio-encontros-tech-db-allow
+  namespace: helio-prod
+  labels:
+    app.kubernetes.io/name: encontros-tech
+    app.kubernetes.io/instance: helio-prod
+    app.kubernetes.io/component: network-policy
+    app.kubernetes.io/part-of: encontros-tech
+    app.kubernetes.io/managed-by: metacortex-platform
+    metacortex.io/cliente: helio
+    metacortex.io/ambiente: prod
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: postgresql
+      app.kubernetes.io/instance: helio-prod
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: encontros-tech
+              app.kubernetes.io/instance: helio-prod
+      ports:
+        - {protocol: TCP, port: 5432}
