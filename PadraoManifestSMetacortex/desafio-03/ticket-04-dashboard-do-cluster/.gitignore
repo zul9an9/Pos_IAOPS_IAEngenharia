@@ -1,0 +1,14 @@
+# ambientes e caches
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+
+# credenciais e rascunhos locais: nunca versionar
+.kubeconfigs-lab/
+scratch_tmp/
+*.kubeconfig
+*.ca
+
+# zips de trabalho
+*.zip
