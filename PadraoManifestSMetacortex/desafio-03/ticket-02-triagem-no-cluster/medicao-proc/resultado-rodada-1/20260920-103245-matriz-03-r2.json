@@ -1,0 +1,105 @@
+{
+  "skills": [
+    "metacortex-triagem"
+  ],
+  "skills_disponiveis": {
+    "skills": [
+      "metacortex-manifests",
+      "metacortex-triagem",
+      "design",
+      "design-sync",
+      "dataviz",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "schedule",
+      "claude-api",
+      "run",
+      "run-skill-generator"
+    ],
+    "mcp_servers": [
+      {
+        "name": "kubernetes",
+        "status": "connected"
+      },
+      {
+        "name": "claude.ai Claude Docs",
+        "status": "connected"
+      },
+      {
+        "name": "claude.ai Google Drive",
+        "status": "connected"
+      }
+    ],
+    "model": "claude-sonnet-5"
+  },
+  "ferramentas": [
+    {
+      "nome": "Skill",
+      "entrada": {
+        "skill": "metacortex-triagem",
+        "args": "o service do nyx-stg não tem endpoint"
+      }
+    },
+    {
+      "nome": "ToolSearch",
+      "entrada": {
+        "query": "select:mcp__kubernetes__kubectl_get,mcp__kubernetes__kubectl_describe,mcp__kubernetes__ping",
+        "max_results": 5
+      }
+    },
+    {
+      "nome": "mcp__kubernetes__kubectl_get",
+      "entrada": {
+        "resourceType": "pods",
+        "namespace": "nyx-stg",
+        "output": "wide"
+      }
+    },
+    {
+      "nome": "mcp__kubernetes__kubectl_get",
+      "entrada": {
+        "resourceType": "services",
+        "namespace": "nyx-stg",
+        "output": "wide"
+      }
+    },
+    {
+      "nome": "mcp__kubernetes__kubectl_get",
+      "entrada": {
+        "resourceType": "pods",
+        "namespace": "nyx-stg",
+        "output": "json"
+      }
+    }
+  ],
+  "sequencia": [
+    "Skill",
+    "ToolSearch",
+    "kubectl_get",
+    "kubectl_get",
+    "kubectl_get"
+  ],
+  "tentativas_escrita": [],
+  "recusas_permissao": [],
+  "custo_usd": 0.0560056,
+  "duracao_ms": 13869,
+  "duracao_api_ms": 14270,
+  "turnos": 5,
+  "tokens_entrada": 145085,
+  "tokens_saida": 909,
+  "fim": "error_max_turns",
+  "resposta_final": "",
+  "rotulo": "matriz-03-r2",
+  "lab": "lab-com-skills",
+  "prompt": "o service do nyx-stg não tem endpoint",
+  "tempo_parede_ms": 17449,
+  "rc": 1,
+  "stderr": ""
+}

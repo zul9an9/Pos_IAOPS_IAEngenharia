@@ -1,0 +1,22 @@
+NAME                             READY   UP-TO-DATE   AVAILABLE   AGE     CONTAINERS   IMAGES                         SELECTOR
+deployment.apps/debug-net        0/0     0            0           3m58s   curl         curlimages/curl:8.10.1         app=debug-net
+deployment.apps/orion-postgres   1/1     1            1           9h      postgres     postgres:16-alpine             app=orion-postgres
+deployment.apps/orion-web        3/3     3            3           9h      web          fabricioveronez/fake-shop:v1   app=orion-web
+
+NAME                                        DESIRED   CURRENT   READY   AGE     CONTAINERS   IMAGES                              SELECTOR
+replicaset.apps/debug-net-759458d89b        0         0         0       3m42s   curl         curlimages/curl:8.10.1              app=debug-net,pod-template-hash=759458d89b
+replicaset.apps/debug-net-85dbbc58cd        0         0         0       3m58s   curl         curlimages/curl:8.10.1              app=debug-net,pod-template-hash=85dbbc58cd
+replicaset.apps/orion-postgres-5595f8958d   1         1         1       9h      postgres     postgres:16-alpine                  app=orion-postgres,pod-template-hash=5595f8958d
+replicaset.apps/orion-web-67888d986c        0         0         0       9h      web          fabricioveronez/fake-shop:v1.14.2   app=orion-web,pod-template-hash=67888d986c
+replicaset.apps/orion-web-6b4c8c7ffd        3         3         3       3m14s   web          fabricioveronez/fake-shop:v1        app=orion-web,pod-template-hash=6b4c8c7ffd
+
+NAME                                  READY   STATUS    RESTARTS   AGE     IP            NODE                           NOMINATED NODE   READINESS GATES
+pod/orion-postgres-5595f8958d-rmtvv   1/1     Running   0          9h      10.244.0.8    metacortex-lab-control-plane   <none>           <none>
+pod/orion-web-6b4c8c7ffd-jdzl6        1/1     Running   0          2m57s   10.244.0.19   metacortex-lab-control-plane   <none>           <none>
+pod/orion-web-6b4c8c7ffd-kwwfc        1/1     Running   0          2m59s   10.244.0.18   metacortex-lab-control-plane   <none>           <none>
+pod/orion-web-6b4c8c7ffd-lx2x7        1/1     Running   0          3m14s   10.244.0.17   metacortex-lab-control-plane   <none>           <none>
+deployment.apps/orion-web 
+REVISION  CHANGE-CAUSE
+1         <none>
+2         <none>
+

@@ -1,0 +1,96 @@
+{
+  "skills": [
+    "metacortex-triagem"
+  ],
+  "skills_disponiveis": {
+    "skills": [
+      "metacortex-manifests",
+      "metacortex-triagem",
+      "design",
+      "design-sync",
+      "dataviz",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "schedule",
+      "claude-api",
+      "run",
+      "run-skill-generator"
+    ],
+    "mcp_servers": [
+      {
+        "name": "kubernetes",
+        "status": "pending"
+      },
+      {
+        "name": "claude.ai Claude Docs",
+        "status": "connected"
+      },
+      {
+        "name": "claude.ai Google Drive",
+        "status": "connected"
+      }
+    ],
+    "model": "claude-sonnet-5"
+  },
+  "ferramentas": [
+    {
+      "nome": "Skill",
+      "entrada": {
+        "skill": "metacortex-triagem",
+        "args": "Pod no namespace nyx-prod não sobe"
+      }
+    },
+    {
+      "nome": "ToolSearch",
+      "entrada": {
+        "query": "kubectl_get kubernetes",
+        "max_results": 10
+      }
+    },
+    {
+      "nome": "mcp__kubernetes__kubectl_get",
+      "entrada": {
+        "resourceType": "pods",
+        "namespace": "nyx-prod",
+        "output": "wide"
+      }
+    },
+    {
+      "nome": "mcp__kubernetes__kubectl_describe",
+      "entrada": {
+        "resourceType": "pod",
+        "name": "nyx-api-7665bb6885-57f5b",
+        "namespace": "nyx-prod"
+      }
+    }
+  ],
+  "sequencia": [
+    "Skill",
+    "ToolSearch",
+    "kubectl_get",
+    "kubectl_describe"
+  ],
+  "tentativas_escrita": [],
+  "recusas_permissao": [],
+  "custo_usd": 0.07122880000000001,
+  "duracao_ms": 11230,
+  "duracao_api_ms": 8724,
+  "turnos": 5,
+  "tokens_entrada": 152687,
+  "tokens_saida": 654,
+  "fim": "error_max_turns",
+  "resposta_final": "",
+  "rotulo": "matriz-01-r2",
+  "lab": "lab-com-skills",
+  "prompt": "o pod do nyx-prod não sobe",
+  "tempo_parede_ms": 16235,
+  "rc": 1,
+  "stderr": ""
+}

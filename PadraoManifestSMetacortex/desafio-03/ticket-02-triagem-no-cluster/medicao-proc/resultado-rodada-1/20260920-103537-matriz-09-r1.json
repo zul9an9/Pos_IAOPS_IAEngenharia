@@ -1,0 +1,58 @@
+{
+  "skills": [],
+  "skills_disponiveis": {
+    "skills": [
+      "metacortex-manifests",
+      "metacortex-triagem",
+      "design",
+      "design-sync",
+      "dataviz",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "schedule",
+      "claude-api",
+      "run",
+      "run-skill-generator"
+    ],
+    "mcp_servers": [
+      {
+        "name": "kubernetes",
+        "status": "connected"
+      },
+      {
+        "name": "claude.ai Claude Docs",
+        "status": "connected"
+      },
+      {
+        "name": "claude.ai Google Drive",
+        "status": "connected"
+      }
+    ],
+    "model": "claude-sonnet-5"
+  },
+  "ferramentas": [],
+  "sequencia": [],
+  "tentativas_escrita": [],
+  "recusas_permissao": [],
+  "custo_usd": 0.0360646,
+  "duracao_ms": 7457,
+  "duracao_api_ms": 8405,
+  "turnos": 1,
+  "tokens_entrada": 33418,
+  "tokens_saida": 608,
+  "fim": "success",
+  "resposta_final": "Um **DaemonSet** é um objeto do Kubernetes que garante que uma cópia (uma réplica) de um determinado Pod rode em **todos os nós do cluster** (ou em um subconjunto de nós, se você usar seletores/taints/tolerations).\n\nCaracterísticas principais:\n\n- **Um Pod por nó**: quando um novo nó entra no cluster, o DaemonSet automaticamente cria um Pod nele. Quando o nó é removido, o Pod correspondente é removido também.\n- **Diferente de um Deployment**: um Deployment define uma *quantidade* de réplicas (ex: 3), sem se importar em quais nós elas caem — o scheduler decide. Um DaemonSet não tem \"número de réplicas\"; o número é sempre \"um por nó elegível\".\n- **Casos de uso típicos**:\n  - Agentes de coleta de logs (ex: Fluentd, Filebeat)\n  - Agentes de monitoramento/métricas de nó (ex: node-exporter do Prometheus, Datadog agent)\n  - Componentes de rede do cluster (ex: kube-proxy, plugins de CNI como Calico/Cilium)\n  - Agentes de storage que precisam rodar em cada nó (ex: drivers CSI)\n\nExemplo simples de manifesto:\n\n```yaml\napiVersion: apps/v1\nkind: DaemonSet\nmetadata:\n  name: node-agent\nspec:\n  selector:\n    matchLabels:\n      app: node-agent\n  template:\n    metadata:\n      labels:\n        app: node-agent\n    spec:\n      containers:\n        - name: node-agent\n          image: exemplo/node-agent:1.0\n```\n\nSe quiser, posso mostrar como isso se aplica a algum caso específico do cluster que você está investigando.",
+  "rotulo": "matriz-09-r1",
+  "lab": "lab-com-skills",
+  "prompt": "o que é um DaemonSet?",
+  "tempo_parede_ms": 10949,
+  "rc": 0,
+  "stderr": ""
+}

@@ -1,0 +1,94 @@
+{
+  "skills": [
+    "metacortex-manifests"
+  ],
+  "skills_disponiveis": {
+    "skills": [
+      "metacortex-manifests",
+      "metacortex-triagem",
+      "design",
+      "design-sync",
+      "dataviz",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "schedule",
+      "claude-api",
+      "run",
+      "run-skill-generator"
+    ],
+    "mcp_servers": [
+      {
+        "name": "kubernetes",
+        "status": "connected"
+      },
+      {
+        "name": "claude.ai Claude Docs",
+        "status": "connected"
+      },
+      {
+        "name": "claude.ai Google Drive",
+        "status": "connected"
+      }
+    ],
+    "model": "claude-sonnet-5"
+  },
+  "ferramentas": [
+    {
+      "nome": "Skill",
+      "entrada": {
+        "skill": "metacortex-manifests",
+        "args": "revisar deployment antes de subir"
+      }
+    },
+    {
+      "nome": "Bash",
+      "entrada": {
+        "command": "find \"C:/Users/Orpheu/Downloads/ticket-02-triagem-no-cluster/ticket-02-triagem-no-cluster/lab-com-skills\" -maxdepth 4 -iname \"*.yaml\" -o -iname \"*.yml\" | grep -v \"/.claude/\"",
+        "description": "Find YAML manifest files outside the skill directory"
+      }
+    },
+    {
+      "nome": "Bash",
+      "entrada": {
+        "command": "find \"C:/Users/Orpheu/Downloads/ticket-02-triagem-no-cluster/ticket-02-triagem-no-cluster/lab-com-skills\" -maxdepth 6 \\( -iname \"*.yaml\" -o -iname \"*.yml\" \\) 2>/dev/null",
+        "description": "Find all YAML files in project directory"
+      }
+    },
+    {
+      "nome": "Bash",
+      "entrada": {
+        "command": "find \"C:/Users/Orpheu/Downloads/ticket-02-triagem-no-cluster/ticket-02-triagem-no-cluster/lab-com-skills\" -maxdepth 3 2>/dev/null",
+        "description": "List project directory structure"
+      }
+    }
+  ],
+  "sequencia": [
+    "Skill",
+    "Bash",
+    "Bash",
+    "Bash"
+  ],
+  "tentativas_escrita": [],
+  "recusas_permissao": [],
+  "custo_usd": 0.06977720000000001,
+  "duracao_ms": 10869,
+  "duracao_api_ms": 9821,
+  "turnos": 5,
+  "tokens_entrada": 141311,
+  "tokens_saida": 741,
+  "fim": "error_max_turns",
+  "resposta_final": "",
+  "rotulo": "matriz-04-r1",
+  "lab": "lab-com-skills",
+  "prompt": "revisa esse deployment antes de eu subir",
+  "tempo_parede_ms": 14526,
+  "rc": 1,
+  "stderr": ""
+}

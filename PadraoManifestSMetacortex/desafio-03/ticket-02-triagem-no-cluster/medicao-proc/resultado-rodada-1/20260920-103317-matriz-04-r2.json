@@ -1,0 +1,108 @@
+{
+  "skills": [
+    "metacortex-manifests"
+  ],
+  "skills_disponiveis": {
+    "skills": [
+      "metacortex-manifests",
+      "metacortex-triagem",
+      "design",
+      "design-sync",
+      "dataviz",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "schedule",
+      "claude-api",
+      "run",
+      "run-skill-generator"
+    ],
+    "mcp_servers": [
+      {
+        "name": "kubernetes",
+        "status": "connected"
+      },
+      {
+        "name": "claude.ai Claude Docs",
+        "status": "connected"
+      },
+      {
+        "name": "claude.ai Google Drive",
+        "status": "connected"
+      }
+    ],
+    "model": "claude-sonnet-5"
+  },
+  "ferramentas": [
+    {
+      "nome": "Skill",
+      "entrada": {
+        "skill": "metacortex-manifests",
+        "args": "revisar deployment antes do deploy no cluster"
+      }
+    },
+    {
+      "nome": "Glob",
+      "entrada": {
+        "pattern": "**/*.yaml"
+      }
+    },
+    {
+      "nome": "Glob",
+      "entrada": {
+        "pattern": "**/*.yml"
+      }
+    },
+    {
+      "nome": "Bash",
+      "entrada": {
+        "command": "find /c/Users/Orpheu/Downloads/ticket-02-triagem-no-cluster -maxdepth 4 -not -path '*/.claude/*' | head -100",
+        "description": "List project files excluding skill directory"
+      }
+    },
+    {
+      "nome": "Glob",
+      "entrada": {
+        "pattern": "**/*"
+      }
+    }
+  ],
+  "sequencia": [
+    "Skill",
+    "Glob",
+    "Glob",
+    "Bash",
+    "Glob"
+  ],
+  "tentativas_escrita": [],
+  "recusas_permissao": [
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_018rUr7Ce9LwQ48KrMweZyvr",
+      "tool_input": {
+        "command": "find /c/Users/Orpheu/Downloads/ticket-02-triagem-no-cluster -maxdepth 4 -not -path '*/.claude/*' | head -100",
+        "description": "List project files excluding skill directory"
+      }
+    }
+  ],
+  "custo_usd": 0.045894000000000004,
+  "duracao_ms": 8724,
+  "duracao_api_ms": 9348,
+  "turnos": 5,
+  "tokens_entrada": 141350,
+  "tokens_saida": 574,
+  "fim": "error_max_turns",
+  "resposta_final": "",
+  "rotulo": "matriz-04-r2",
+  "lab": "lab-com-skills",
+  "prompt": "revisa esse deployment antes de eu subir",
+  "tempo_parede_ms": 12194,
+  "rc": 1,
+  "stderr": ""
+}
