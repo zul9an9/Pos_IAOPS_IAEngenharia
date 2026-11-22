@@ -1,0 +1,113 @@
+# Banco do fake-shop. Decisões em ../../decisoes.md (D4).
+# ATENÇÃO 2.3 (obrigatório): replicas: 1 em prod. Exige exceção aprovada por escrito por
+# Segurança & Compliance no PR, com prazo de validade, até existir Postgres com replicação.
+apiVersion: v1
+kind: Service
+metadata:
+  name: orion-postgres
+  namespace: orion-prod
+  labels:
+    app.kubernetes.io/name: orion-postgres
+    app.kubernetes.io/instance: orion-prod
+    app.kubernetes.io/part-of: orion
+    app.kubernetes.io/managed-by: platform
+spec:
+  type: ClusterIP
+  clusterIP: None            # headless: identidade estável para o StatefulSet
+  selector:
+    app.kubernetes.io/name: orion-postgres
+    app.kubernetes.io/instance: orion-prod
+  ports:
+    - {name: postgres, port: 5432, targetPort: postgres}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: orion-postgres
+  namespace: orion-prod
+  labels:
+    app.kubernetes.io/name: orion-postgres
+    app.kubernetes.io/instance: orion-prod
+    app.kubernetes.io/part-of: orion
+    app.kubernetes.io/managed-by: platform
+  annotations:
+    metacortex.io/owner: plataforma-sre
+spec:
+  serviceName: orion-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: orion-postgres
+      app.kubernetes.io/instance: orion-prod
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: orion-postgres
+        app.kubernetes.io/instance: orion-prod
+        app.kubernetes.io/part-of: orion
+        app.kubernetes.io/managed-by: platform
+    spec:
+      serviceAccountName: orion-postgres
+      automountServiceAccountToken: false
+      # 2.6: SIGTERM no postgres é "smart shutdown" (espera as sessões). 30s pode não bastar
+      # e o SIGKILL força recuperação de crash no próximo boot.
+      terminationGracePeriodSeconds: 60
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001       # 3.2; a imagem oficial suporta usuário arbitrário
+        runAsGroup: 10001
+        fsGroup: 10001         # torna o PVC e os emptyDir graváveis pelo UID 10001
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: postgres
+          image: registry.metacortex.io/orion/postgres:16.4-alpine
+          ports:
+            - {name: postgres, containerPort: 5432}
+          env:
+            - {name: POSTGRES_DB, value: ecommerce}
+            - name: POSTGRES_USER
+              valueFrom: {secretKeyRef: {name: orion-fake-shop-db, key: username}}
+            - name: POSTGRES_PASSWORD
+              valueFrom: {secretKeyRef: {name: orion-fake-shop-db, key: password}}
+            - {name: PGDATA, value: /var/lib/postgresql/data/pgdata}
+          startupProbe:
+            exec: {command: ["pg_isready", "-h", "127.0.0.1", "-p", "5432"]}
+            periodSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            exec: {command: ["pg_isready", "-h", "127.0.0.1", "-p", "5432"]}
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            exec: {command: ["pg_isready", "-h", "127.0.0.1", "-p", "5432"]}
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests: {cpu: 100m, memory: 256Mi}
+            limits: {cpu: 500m, memory: 512Mi}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: ["ALL"]}
+          volumeMounts:
+            - {name: data, mountPath: /var/lib/postgresql/data}
+            - {name: run, mountPath: /var/run/postgresql}
+            - {name: tmp, mountPath: /tmp}
+      volumes:
+        - {name: run, emptyDir: {}}
+        - {name: tmp, emptyDir: {}}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          app.kubernetes.io/name: orion-postgres
+          app.kubernetes.io/instance: orion-prod
+          app.kubernetes.io/part-of: orion
+          app.kubernetes.io/managed-by: platform
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests: {storage: 5Gi}
