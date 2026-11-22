@@ -1,0 +1,73 @@
+=== 1) host conforme (baseline reduzido)
+# Invent├írio ÔÇö DESKTOP-ENKOORK (172.29.2.241)
+
+Coletado em 2026-09-20T22:56:13Z ┬À baseline v1
+
+## Desvios
+
+Nenhum desvio.
+
+## N├úo verificado
+
+Nenhuma regra n├úo verificada.
+
+## Conforme
+
+so.distribuicao ┬À so.versao_minima ┬À kernel.versao_minima ┬À servicos.ativos ┬À servicos.proibidos ┬À swap.habilitado ┬À portas_em_escuta.publicas_permitidas ┬À chaves_ssh.emitidas_por ┬À ntp.sincronizado
+exit=0 (esperado 0)
+
+=== 2) desvios com severidade (baseline oficial)
+# Invent├írio ÔÇö DESKTOP-ENKOORK (172.29.2.241)
+
+Coletado em 2026-09-20T22:56:14Z ┬À baseline v1
+
+## Desvios
+
+| Severidade | Regra | Esperado | Encontrado |
+|---|---|---|---|
+| critico | `swap.habilitado` | false | true |
+| critico | `portas_em_escuta.somente_rede_interna` | [9100] | [{"enderecos": [], "porta": 9100}] |
+| alto | `servicos.ativos` | ["ssh", "containerd", "node_exporter", "chrony"] | {"ativos": ["chrony.service", "ssh.service"], "ausentes_ou_inativos": ["containerd.service", "node_exporter.service"]} |
+
+## N├úo verificado
+
+| Regra | Motivo |
+|---|---|
+| `ssh.login_de_root` | fato 'ssh_login_root' n├úo lido pela coleta: sshd -T falhou (privil├®gio insuficiente para ler a configura├º├úo efetiva) |
+
+## Conforme
+
+so.distribuicao ┬À so.versao_minima ┬À kernel.versao_minima ┬À servicos.proibidos ┬À portas_em_escuta.publicas_permitidas ┬À chaves_ssh.emitidas_por ┬À ntp.sincronizado
+exit=1 (esperado 1)
+
+=== 4) host inalcancavel
+python : erro: n├úo foi poss├¡vel conectar ao host 10.255.255.1: inalcan├º├ível, sem resposta dentro do tempo limite 
+ou conex├úo recusada/encerrada
+No linha:1 caractere:1
++ python -m vminv --host 10.255.255.1 --usuario orpheu --chave $K --bas ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (erro: n├úo foi ...usada/encerrada:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+exit=2 (esperado 2)
+
+=== 4b) chave recusada
+python : erro: o host 172.29.2.241 rejeitou a autentica├º├úo SSH para o usu├írio orpheu: chave recusada, protegida por 
+senha ou sem permiss├úo de uso
+No linha:1 caractere:1
++ python -m vminv --host $H --usuario orpheu --chave "$env:TEMP\chave-e ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (erro: o host 17...rmiss├úo de uso:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+exit=2 (esperado 2)
+
+=== 5) execucao repetida (diff deve mostrar so o timestamp)
+
+InputObject                               SideIndicator
+-----------                               -------------
+    "coletado_em": "2026-09-20T22:56:22Z" =>           
+    "coletado_em": "2026-09-20T22:56:21Z" <=           
+
+
+
