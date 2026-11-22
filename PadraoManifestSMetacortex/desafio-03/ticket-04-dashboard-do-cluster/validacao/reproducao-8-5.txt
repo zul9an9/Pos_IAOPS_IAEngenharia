@@ -1,0 +1,17 @@
+Namespace selecionado: nyx-prod | contexto: painel | erro global: None
+Estado por bloco: {'pods': 'dados', 'deployments': 'dados', 'services': 'dados', 'eventos': 'erro'}
+Linhas por bloco: {'pods': 3, 'deployments': 2, 'services': 2}
+Aviso de somente leitura na tela: True
+
+-- Pods
+    nyx-prod nyx-api-7665bb6885-57f5b Running 0/1 162 CrashLoopBackOff; última terminação: OOMKilled (exit 137)
+    nyx-prod nyx-api-7665bb6885-rc6vw Running 0/1 162 CrashLoopBackOff; última terminação: OOMKilled (exit 137)
+    nyx-prod nyx-postgres-5f5f4d5847-vdl55 Running 1/1 1 última terminação: Unknown (exit 255)
+-- Deployments
+    nyx-prod nyx-api 0/2
+    nyx-prod nyx-postgres 1/1
+-- Services
+    nyx-prod nyx-api ClusterIP 10.96.165.107 80/TCP 2 endereços, 0 prontos
+    nyx-prod nyx-postgres ClusterIP 10.96.114.163 5432/TCP 1 endereço, 1 pronto
+-- Bloco de eventos (texto exato):
+    Eventos de nyx-prod sem permissão para listar eventos A API retém eventos por tempo limitado (padrão do Kubernetes: 1 hora); eventos mais antigos não aparecem aqui.
