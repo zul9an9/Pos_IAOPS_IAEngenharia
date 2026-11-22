@@ -1,0 +1,69 @@
+{
+  "skills": [
+    "metacortex-manifests"
+  ],
+  "skills_disponiveis": {
+    "skills": [
+      "metacortex-manifests",
+      "metacortex-triagem",
+      "design",
+      "design-sync",
+      "dataviz",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "schedule",
+      "claude-api",
+      "run",
+      "run-skill-generator"
+    ],
+    "mcp_servers": [
+      {
+        "name": "kubernetes",
+        "status": "pending"
+      },
+      {
+        "name": "claude.ai Claude Docs",
+        "status": "connected"
+      },
+      {
+        "name": "claude.ai Google Drive",
+        "status": "connected"
+      }
+    ],
+    "model": "claude-sonnet-5"
+  },
+  "ferramentas": [
+    {
+      "nome": "Skill",
+      "entrada": {
+        "skill": "metacortex-manifests"
+      }
+    }
+  ],
+  "sequencia": [
+    "Skill"
+  ],
+  "tentativas_escrita": [],
+  "recusas_permissao": [],
+  "custo_usd": 0.0513376,
+  "duracao_ms": 7311,
+  "duracao_api_ms": 8009,
+  "turnos": 3,
+  "tokens_entrada": 69352,
+  "tokens_saida": 443,
+  "fim": "success",
+  "resposta_final": "Não vejo nenhum manifesto anexado ainda. Para conferir se está no padrão da casa, preciso de:\n\n1. **O arquivo YAML** — caminho local, conteúdo colado, ou repositório.\n2. **O repositório da aplicação** (local ou URL para clonar) — a conferência tem uma parte mecânica (rótulos, probes, requests/limits, securityContext etc., que dá para checar só olhando o YAML) e uma parte contextual (porta certa, variáveis de ambiente que o código realmente lê, endpoint de saúde) que só dá pra resolver lendo o código.\n\nPode colar o conteúdo do manifesto ou me passar o caminho/repo?",
+  "rotulo": "matriz-05-r1",
+  "lab": "lab-com-skills",
+  "prompt": "esse manifesto está no padrão da casa?",
+  "tempo_parede_ms": 11661,
+  "rc": 0,
+  "stderr": ""
+}

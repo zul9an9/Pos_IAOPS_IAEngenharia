@@ -1,0 +1,70 @@
+{
+  "skills": [
+    "metacortex-triagem"
+  ],
+  "skills_disponiveis": {
+    "skills": [
+      "metacortex-manifests",
+      "metacortex-triagem",
+      "design",
+      "design-sync",
+      "dataviz",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "schedule",
+      "claude-api",
+      "run",
+      "run-skill-generator"
+    ],
+    "mcp_servers": [
+      {
+        "name": "kubernetes",
+        "status": "pending"
+      },
+      {
+        "name": "claude.ai Claude Docs",
+        "status": "connected"
+      },
+      {
+        "name": "claude.ai Google Drive",
+        "status": "connected"
+      }
+    ],
+    "model": "claude-sonnet-5"
+  },
+  "ferramentas": [
+    {
+      "nome": "Skill",
+      "entrada": {
+        "skill": "metacortex-triagem",
+        "args": "Manifesto não sobe no cluster"
+      }
+    }
+  ],
+  "sequencia": [
+    "Skill"
+  ],
+  "tentativas_escrita": [],
+  "recusas_permissao": [],
+  "custo_usd": 0.030368600000000003,
+  "duracao_ms": 8124,
+  "duracao_api_ms": 8725,
+  "turnos": 3,
+  "tokens_entrada": 70348,
+  "tokens_saida": 654,
+  "fim": "success",
+  "resposta_final": "O passo 0 do método pede pra confirmar antes de ir pro cluster: esse manifesto já foi aplicado (`kubectl apply`), ou o erro está acontecendo no próprio `apply`/arquivo?\n\n- Se o `apply` foi **recusado** (erro de validação, campo desconhecido, nome inválido) — não há nada rodando pra triar; isso é conferência de manifesto (skill `metacortex-manifests`), não triagem de cluster.\n- Se foi **aplicado**, mas o pod/deployment não fica pronto ou não entrega tráfego — aí sim eu sigo a triagem no cluster, pelo namespace e nome do recurso.\n\nQual dos dois é o seu caso, e qual o namespace/nome do recurso?",
+  "rotulo": "matriz-07-r3",
+  "lab": "lab-com-skills",
+  "prompt": "esse manifesto não sobe no cluster",
+  "tempo_parede_ms": 12314,
+  "rc": 0,
+  "stderr": ""
+}

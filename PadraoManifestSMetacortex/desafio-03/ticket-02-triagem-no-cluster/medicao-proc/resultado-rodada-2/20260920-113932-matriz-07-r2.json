@@ -1,0 +1,70 @@
+{
+  "skills": [
+    "metacortex-triagem"
+  ],
+  "skills_disponiveis": {
+    "skills": [
+      "metacortex-manifests",
+      "metacortex-triagem",
+      "design",
+      "design-sync",
+      "dataviz",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "schedule",
+      "claude-api",
+      "run",
+      "run-skill-generator"
+    ],
+    "mcp_servers": [
+      {
+        "name": "kubernetes",
+        "status": "pending"
+      },
+      {
+        "name": "claude.ai Claude Docs",
+        "status": "connected"
+      },
+      {
+        "name": "claude.ai Google Drive",
+        "status": "connected"
+      }
+    ],
+    "model": "claude-sonnet-5"
+  },
+  "ferramentas": [
+    {
+      "nome": "Skill",
+      "entrada": {
+        "skill": "metacortex-triagem",
+        "args": "Manifesto não sobe no cluster"
+      }
+    }
+  ],
+  "sequencia": [
+    "Skill"
+  ],
+  "tentativas_escrita": [],
+  "recusas_permissao": [],
+  "custo_usd": 0.0306161,
+  "duracao_ms": 7682,
+  "duracao_api_ms": 8360,
+  "turnos": 3,
+  "tokens_entrada": 70383,
+  "tokens_saida": 670,
+  "fim": "success",
+  "resposta_final": "O pedido fala de um arquivo (\"esse manifesto não sobe\"), não de algo já rodando. Antes de ir olhar o cluster, preciso saber: você tentou aplicar esse manifesto e apareceu algum erro de `apply` (validação, campo desconhecido, nome inválido)? Ou ele foi aplicado com sucesso mas o pod/deployment não fica pronto ou não entrega tráfego?\n\n- Se foi **recusado no apply**, isso é conferência de manifesto (skill `metacortex-manifests`), não triagem de cluster.\n- Se foi **aplicado mas não sobe**, me diga o **namespace** e o **nome** do recurso para eu triar no cluster.",
+  "rotulo": "matriz-07-r2",
+  "lab": "lab-com-skills",
+  "prompt": "esse manifesto não sobe no cluster",
+  "tempo_parede_ms": 11742,
+  "rc": 0,
+  "stderr": ""
+}

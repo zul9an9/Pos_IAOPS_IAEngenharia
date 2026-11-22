@@ -1,0 +1,70 @@
+{
+  "skills": [
+    "metacortex-triagem"
+  ],
+  "skills_disponiveis": {
+    "skills": [
+      "metacortex-manifests",
+      "metacortex-triagem",
+      "design",
+      "design-sync",
+      "dataviz",
+      "update-config",
+      "verify",
+      "debug",
+      "code-review",
+      "simplify",
+      "batch",
+      "fewer-permission-prompts",
+      "doctor",
+      "loop",
+      "schedule",
+      "claude-api",
+      "run",
+      "run-skill-generator"
+    ],
+    "mcp_servers": [
+      {
+        "name": "kubernetes",
+        "status": "pending"
+      },
+      {
+        "name": "claude.ai Claude Docs",
+        "status": "connected"
+      },
+      {
+        "name": "claude.ai Google Drive",
+        "status": "connected"
+      }
+    ],
+    "model": "claude-sonnet-5"
+  },
+  "ferramentas": [
+    {
+      "nome": "Skill",
+      "entrada": {
+        "skill": "metacortex-triagem",
+        "args": "manifesto não sobe no cluster"
+      }
+    }
+  ],
+  "sequencia": [
+    "Skill"
+  ],
+  "tentativas_escrita": [],
+  "recusas_permissao": [],
+  "custo_usd": 0.0486559,
+  "duracao_ms": 17028,
+  "duracao_api_ms": 17779,
+  "turnos": 3,
+  "tokens_entrada": 70313,
+  "tokens_saida": 1176,
+  "fim": "success",
+  "resposta_final": "Antes de olhar o cluster, preciso entender melhor a situação: esse manifesto já foi aplicado (`kubectl apply`)? Se sim, qual erro ou comportamento apareceu — o apply foi recusado, ou ele foi aplicado mas o pod/deployment não fica pronto (ex: crash, não puxa imagem, sem endpoint)?\n\n- Se o **apply foi recusado** (erro de validação, campo desconhecido, nome inválido), isso é conferência de manifesto contra o padrão, não triagem de cluster — nesse caso me manda o arquivo YAML que eu uso a skill `metacortex-manifests`.\n- Se foi **aplicado mas não sobe** (fica pendente, reinicia, não recebe tráfego), me diga o **namespace** e o **nome** do Deployment/Pod/Service para eu investigar o estado real no cluster.",
+  "rotulo": "matriz-07-r1",
+  "lab": "lab-com-skills",
+  "prompt": "esse manifesto não sobe no cluster",
+  "tempo_parede_ms": 21299,
+  "rc": 0,
+  "stderr": ""
+}
